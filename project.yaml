@@ -1,0 +1,18 @@
+# 成员仓库根目录放一份这个文件，名字就叫 project.yaml
+# 字段说明见下方注释，可选字段留空或删掉都行
+
+name: trellis-micu                  # 必填
+authors: [九秋]       # 必填
+category: LLM                # 必填：LLM / CV / Agent / Tool / Other
+tags: [编程工作流]         # 可选
+status: done          # in-progress / done / archived
+updated: 2026-05-21          # YYYY-MM-DD
+summary: 让你的AI编程更规范,减少编程幻觉   # 必填
+
+cover: assets/cover.png      # 可选，相对仓库路径或完整 URL
+demo: https://...            # 可选
+readme: README.md            # 可选，详情页拉哪个文件，默认 README.md
+
+links:                       # 可选
+  paper: https://...
+  video: https://...

@@ -1,0 +1,90 @@
+{
+  "name": "@mindfoldhq/trellis",
+  "version": "0.3.5",
+  "description": "AI capabilities grow like ivy — Trellis provides the structure to guide them along a disciplined path",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "trellis": "./bin/trellis.js",
+    "tl": "./bin/trellis.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc && pnpm run copy-templates",
+    "copy-templates": "node scripts/copy-templates.js",
+    "dev": "tsc --watch",
+    "start": "node ./dist/cli/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/ test/",
+    "lint:fix": "eslint src/ test/ --fix",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
+    "typecheck": "tsc --noEmit",
+    "lint:py": "basedpyright",
+    "lint:all": "pnpm lint && pnpm lint:py",
+    "prepare": "husky",
+    "prepublishOnly": "pnpm test && pnpm run build",
+    "release": "pnpm test && git add -A && git diff-index --quiet HEAD || git commit -m 'chore: pre-release updates' && pnpm version patch && git push origin main --tags",
+    "release:minor": "pnpm test && git add -A && git diff-index --quiet HEAD || git commit -m 'chore: pre-release updates' && pnpm version minor && git push origin main --tags",
+    "release:major": "pnpm test && git add -A && git diff-index --quiet HEAD || git commit -m 'chore: pre-release updates' && pnpm version major && git push origin main --tags",
+    "release:beta": "pnpm test && git add -A && git diff-index --quiet HEAD || git commit -m 'chore: pre-release updates' && pnpm version prerelease --preid beta && git push origin HEAD --tags",
+    "release:rc": "pnpm test && git add -A && git diff-index --quiet HEAD || git commit -m 'chore: pre-release updates' && pnpm version prerelease --preid rc && git push origin HEAD --tags",
+    "release:promote": "pnpm test && git add -A && git diff-index --quiet HEAD || git commit -m 'chore: pre-release updates' && pnpm version \"$(node -p \"require('./package.json').version.replace(/-.*/, '')\")\" && git push origin main --tags",
+    "manifest": "node scripts/create-manifest.js"
+  },
+  "keywords": [
+    "ai",
+    "workflow",
+    "cursor",
+    "claude",
+    "iflow",
+    "cli",
+    "developer-tools",
+    "agent",
+    "memory",
+    "trellis"
+  ],
+  "author": "Mindfold LLC",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "figlet": "^1.9.4",
+    "giget": "^3.1.1",
+    "inquirer": "^9.3.7",
+    "undici": "^6.21.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/figlet": "^1.7.0",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.17.10",
+    "@vitest/coverage-v8": "^4.0.18",
+    "basedpyright": "^1.37.2",
+    "eslint": "^9.18.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.21.0",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mindfold-ai/trellis.git"
+  }
+}

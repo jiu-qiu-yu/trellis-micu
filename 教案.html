@@ -1,0 +1,3049 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trellis 快速上手指南：Claude Code 与 Codex</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700;800&display=swap');
+
+  :root {
+    --paper: #f7f1e8;
+    --paper-deep: #efe4d4;
+    --surface: rgba(255, 252, 247, 0.88);
+    --surface-strong: #fffaf3;
+    --ink: #183153;
+    --muted: #576672;
+    --line: #dccfbe;
+    --accent: #1f7a8c;
+    --accent-2: #d97757;
+    --accent-3: #667c65;
+    --accent-soft: rgba(31, 122, 140, 0.14);
+    --accent-warm: rgba(217, 119, 87, 0.14);
+    --code-bg: #162331;
+    --code-top: #223445;
+    --shadow: 0 24px 60px rgba(24, 49, 83, 0.10);
+    --radius-lg: 28px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+    --container: 1120px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at top left, rgba(31, 122, 140, 0.12), transparent 34%),
+      radial-gradient(circle at top right, rgba(217, 119, 87, 0.13), transparent 30%),
+      linear-gradient(180deg, #f9f4ec 0%, var(--paper) 56%, #f5ecdf 100%);
+    font-family: "Noto Sans SC", sans-serif;
+    line-height: 1.8;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  a:hover { text-decoration: underline; }
+
+  .shell {
+    width: min(var(--container), calc(100% - 36px));
+    margin: 0 auto;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(14px);
+    background: rgba(247, 241, 232, 0.86);
+    border-bottom: 1px solid rgba(220, 207, 190, 0.8);
+  }
+
+  .topbar-inner {
+    width: min(var(--container), calc(100% - 36px));
+    margin: 0 auto;
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+
+  .brand-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent) 0%, #2f9fb3 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+    position: relative;
+  }
+
+  .brand-mark::before,
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.92);
+  }
+
+  .brand-mark::before {
+    width: 22px;
+    height: 4px;
+    left: 11px;
+    top: 12px;
+  }
+
+  .brand-mark::after {
+    width: 16px;
+    height: 4px;
+    left: 11px;
+    top: 24px;
+  }
+
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: flex-end;
+  }
+
+  .nav a {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .hero {
+    padding: 52px 0 24px;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+    gap: 24px;
+    align-items: stretch;
+  }
+
+  .hero-panel,
+  .aside-panel,
+  .section-card,
+  .glass-card,
+  .timeline-card,
+  .faq-item,
+  .checkpoint,
+  .status-card {
+    background: var(--surface);
+    border: 1px solid rgba(220, 207, 190, 0.88);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius-lg);
+  }
+
+  .hero-panel {
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-panel::after {
+    content: "";
+    position: absolute;
+    right: -120px;
+    bottom: -120px;
+    width: 260px;
+    height: 260px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(31, 122, 140, 0.22), transparent 70%);
+    pointer-events: none;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(24, 49, 83, 0.06);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .hero h1,
+  .section-title h2 {
+    margin: 14px 0 0;
+    font-family: "Fraunces", serif;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .hero h1 {
+    font-size: clamp(34px, 5vw, 64px);
+    max-width: 11ch;
+  }
+
+  .hero p.lead {
+    margin: 20px 0 0;
+    max-width: 60ch;
+    font-size: 17px;
+    color: var(--muted);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 26px;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 20px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+    text-decoration: none;
+  }
+
+  .button.primary {
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent) 0%, #2a94aa 100%);
+    box-shadow: 0 16px 28px rgba(31, 122, 140, 0.24);
+  }
+
+  .button.ghost {
+    color: var(--ink);
+    border-color: rgba(24, 49, 83, 0.14);
+    background: rgba(255,255,255,0.52);
+  }
+
+  .hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 28px;
+  }
+
+  .metric {
+    padding: 18px 16px;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.66);
+    border: 1px solid rgba(220, 207, 190, 0.72);
+  }
+
+  .metric strong {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  .metric span {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .aside-panel {
+    padding: 28px;
+    display: grid;
+    gap: 16px;
+  }
+
+  .version-note {
+    padding: 18px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, rgba(31, 122, 140, 0.10), rgba(255,255,255,0.66));
+    border: 1px solid rgba(31, 122, 140, 0.18);
+  }
+
+  .version-note h3,
+  .mini-card h3,
+  .section-card h3,
+  .timeline-card h3,
+  .faq-item summary,
+  .status-card h3 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .version-note p,
+  .mini-card p,
+  .section-copy p,
+  .timeline-card p,
+  .status-card p {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .mini-card {
+    padding: 18px;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(220, 207, 190, 0.72);
+  }
+
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(24, 49, 83, 0.06);
+    color: var(--ink);
+  }
+
+  section {
+    padding: 26px 0;
+    scroll-margin-top: 92px;
+  }
+
+  .section-title {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: end;
+    margin-bottom: 18px;
+  }
+
+  .section-title h2 {
+    font-size: clamp(30px, 4vw, 46px);
+  }
+
+  .section-title p {
+    margin: 10px 0 0;
+    max-width: 60ch;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .section-index {
+    width: 70px;
+    height: 70px;
+    border-radius: 24px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, rgba(31, 122, 140, 0.14), rgba(255,255,255,0.7));
+    color: var(--accent);
+    font-family: "Fraunces", serif;
+    font-size: 26px;
+    font-weight: 700;
+    border: 1px solid rgba(31, 122, 140, 0.18);
+  }
+
+  .grid-3,
+  .grid-2,
+  .status-grid,
+  .prompt-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .status-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .prompt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .section-card,
+  .glass-card,
+  .timeline-card,
+  .status-card {
+    min-width: 0;
+    padding: 24px;
+  }
+
+  .card-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .card-label.warm {
+    background: var(--accent-warm);
+    color: var(--accent-2);
+  }
+
+  .card-label.olive {
+    background: rgba(102, 124, 101, 0.14);
+    color: var(--accent-3);
+  }
+
+  .section-card h3,
+  .glass-card h3,
+  .timeline-card h3,
+  .status-card h3 {
+    margin-top: 14px;
+    font-size: 22px;
+    line-height: 1.25;
+  }
+
+  .section-card p,
+  .glass-card p,
+  .timeline-card p,
+  .status-card p {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .faq-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .bullet-list {
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 10px;
+  }
+
+  .bullet-list li {
+    position: relative;
+    padding-left: 18px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .bullet-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+
+  .comparison {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .comparison-card {
+    padding: 26px;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(220, 207, 190, 0.88);
+    box-shadow: var(--shadow);
+  }
+
+  .comparison-card.bad {
+    background: linear-gradient(180deg, rgba(217, 119, 87, 0.12), rgba(255, 251, 246, 0.86));
+  }
+
+  .comparison-card.good {
+    background: linear-gradient(180deg, rgba(31, 122, 140, 0.12), rgba(255, 252, 247, 0.86));
+  }
+
+  .comparison-card h3 {
+    margin: 14px 0 0;
+    font-size: 24px;
+  }
+
+  .comparison-card p {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .callout {
+    margin-top: 18px;
+    padding: 18px 20px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(24, 49, 83, 0.10);
+    background: rgba(255,255,255,0.76);
+    color: var(--ink);
+  }
+
+  .callout strong {
+    color: var(--ink);
+  }
+
+  .map-table,
+  .tool-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.74);
+    border: 1px solid rgba(220, 207, 190, 0.88);
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .map-table thead,
+  .map-table tbody,
+  .tool-table thead,
+  .tool-table tbody {
+    display: table;
+    width: 100%;
+    min-width: 680px;
+  }
+
+  .map-table th,
+  .map-table td,
+  .tool-table th,
+  .tool-table td {
+    padding: 16px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid rgba(220, 207, 190, 0.62);
+    font-size: 14px;
+  }
+
+  .map-table th,
+  .tool-table th {
+    background: rgba(24, 49, 83, 0.92);
+    color: #fff;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .map-table tr:last-child td,
+  .tool-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  code,
+  .code-inline {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.92em;
+    background: rgba(24, 49, 83, 0.07);
+    padding: 2px 6px;
+    border-radius: 7px;
+    overflow-wrap: anywhere;
+  }
+
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .terminal {
+    overflow: hidden;
+    border-radius: 22px;
+    box-shadow: 0 22px 38px rgba(22, 35, 49, 0.22);
+  }
+
+  .terminal-top {
+    background: linear-gradient(180deg, #304558 0%, var(--code-top) 100%);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255,255,255,0.72);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .terminal-top .dots {
+    display: inline-flex;
+    gap: 8px;
+  }
+
+  .terminal-top .dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.34);
+  }
+
+  .terminal-body {
+    background: var(--code-bg);
+    color: #d8e3ec;
+    padding: 22px 24px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .prompt { color: #8fe3d9; }
+  .prompt::before { content: "$ "; color: #f3b27c; }
+  .comment { color: #87a0b4; }
+  .output { color: #d8e3ec; }
+  .accent { color: #ffd38c; }
+  .good { color: #95e0a6; }
+
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .tool-card {
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255, 249, 240, 0.9));
+    border: 1px solid rgba(220, 207, 190, 0.88);
+    box-shadow: var(--shadow);
+  }
+
+  .tool-card h3 {
+    margin: 14px 0 0;
+    font-size: 24px;
+  }
+
+  .tool-card p {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .tool-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .tool-chip {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(24, 49, 83, 0.06);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .step-stack {
+    display: grid;
+    gap: 16px;
+  }
+
+  .step-item {
+    position: relative;
+    padding: 22px 22px 22px 78px;
+    border-radius: var(--radius-lg);
+    background: rgba(255,255,255,0.84);
+    border: 1px solid rgba(220, 207, 190, 0.88);
+    box-shadow: var(--shadow);
+  }
+
+  .step-item::before {
+    content: attr(data-step);
+    position: absolute;
+    left: 24px;
+    top: 22px;
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(180deg, var(--accent) 0%, #2a94aa 100%);
+    color: #fff;
+    font-family: "Fraunces", serif;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .step-item h3 {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  .step-item p {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .role-box {
+    padding: 16px;
+    border-radius: var(--radius-md);
+    background: rgba(247, 241, 232, 0.76);
+    border: 1px solid rgba(220, 207, 190, 0.88);
+  }
+
+  .role-box strong {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .role-box p {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .copy-block {
+    margin-top: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(24, 49, 83, 0.18);
+    background: linear-gradient(180deg, #172636 0%, var(--code-bg) 100%);
+    box-shadow: 0 14px 28px rgba(22, 35, 49, 0.16);
+  }
+
+  .copy-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 12px 11px 14px;
+    background: linear-gradient(180deg, #2f4456 0%, var(--code-top) 100%);
+    color: rgba(255,255,255,0.76);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .copy-btn {
+    min-height: 36px;
+    padding: 0 13px;
+    border: 1px solid rgba(255,255,255,0.24);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.10);
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  }
+
+  .copy-btn:hover,
+  .copy-btn:focus-visible {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.34);
+    outline: none;
+  }
+
+  .copy-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .copy-block pre {
+    padding: 16px;
+    color: #d8e3ec;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .copy-block.prompt-copy pre {
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  .copy-block.prompt-copy .copy-head span::after {
+    content: "单行复制";
+    display: inline-flex;
+    margin-left: 8px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.70);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .context-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .context-grid .context-note {
+    grid-column: 1 / -1;
+    background: rgba(31, 122, 140, 0.09);
+    border-color: rgba(31, 122, 140, 0.18);
+  }
+
+  .timeline {
+    display: grid;
+    gap: 18px;
+  }
+
+  .timeline-card {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  .timeline-slot {
+    padding: 16px 14px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, rgba(31, 122, 140, 0.13), rgba(255,255,255,0.72));
+    border: 1px solid rgba(31, 122, 140, 0.16);
+    text-align: center;
+  }
+
+  .timeline-slot strong {
+    display: block;
+    font-family: "Fraunces", serif;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--accent);
+  }
+
+  .timeline-slot span {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .dialogue {
+    margin-top: 16px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .bubble {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(220, 207, 190, 0.88);
+  }
+
+  .bubble strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .bubble p {
+    margin: 0;
+    color: var(--ink);
+    font-size: 14px;
+  }
+
+  .bubble.ai strong { color: var(--accent-2); }
+  .bubble.meta strong { color: var(--accent-3); }
+  .bubble.meta { background: rgba(102, 124, 101, 0.10); }
+
+  .status-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.84), rgba(245, 237, 225, 0.82));
+  }
+
+  .status-card strong {
+    display: inline-block;
+    margin-top: 14px;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  details.faq-item {
+    padding: 0;
+    overflow: hidden;
+    align-self: start;
+  }
+
+  details summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 22px 24px;
+    font-weight: 800;
+  }
+
+  details summary::-webkit-details-marker { display: none; }
+
+  details .faq-body {
+    padding: 0 24px 22px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .footer {
+    padding: 34px 0 48px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 960px) {
+    .hero-grid,
+    .grid-3,
+    .grid-2,
+    .comparison,
+    .tool-grid,
+    .status-grid,
+    .prompt-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .timeline-card,
+    .section-title {
+      grid-template-columns: 1fr;
+    }
+
+    .role-grid { grid-template-columns: 1fr; }
+
+    .hero-panel { padding: 30px; }
+    .topbar-inner { align-items: flex-start; padding: 12px 0; }
+  }
+
+  @media (max-width: 720px) {
+    .nav { display: none; }
+    .hero-metrics { grid-template-columns: 1fr; }
+    .timeline-slot { max-width: 140px; }
+    .step-item { padding-left: 22px; }
+    .step-item::before {
+      position: static;
+      margin-bottom: 14px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Trellis 快速上手指南</span>
+    </div>
+    <nav class="nav" aria-label="章节导航">
+      <a href="#overview">是什么</a>
+      <a href="#map">结构</a>
+      <a href="#tools">Claude 与 Codex</a>
+      <a href="#example">完整示例</a>
+      <a href="#progress">看进度</a>
+      <a href="#prompts">提示词</a>
+      <a href="#commands">指令大全</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="shell hero-grid">
+      <div class="hero-panel reveal">
+        <span class="eyebrow">For 2026-05-16 Quick Use</span>
+        <h1>把 AI 写代码，从会聊天，变成会接着干活</h1>
+        <p class="lead">
+          Trellis 不是另一个写代码模型，它更像是给 Claude Code、Codex 这些 AI 工具加上一套项目记忆、任务状态和工作流程。
+          当前 0.5.x 版本已经支持十多个平台，但这份页面先拿 Claude Code 和 Codex 做主线，因为它们最能看清 slash commands、skills、hooks、任务文件和 journal 的差别。
+          你可以只接 Claude、只接 Codex，或者两个都接；下面我会先讲框架，再讲单独使用和同时使用时该怎么操作，最后给一条从 0 到 1 的完整实战路径。
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#example">直接看完整示例</a>
+          <a class="button ghost" href="#progress">先看怎么续工和看进度</a>
+        </div>
+        <div class="hero-metrics">
+          <div class="metric">
+            <strong>1 次</strong>
+            <span>写清规范，不必每轮重说</span>
+          </div>
+          <div class="metric">
+            <strong>4 类文件</strong>
+            <span>入口、规范、任务、日志</span>
+          </div>
+          <div class="metric">
+            <strong>2 条主线</strong>
+            <span>可单独接入，也可同时接入</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="aside-panel reveal">
+        <div class="version-note">
+          <h3>版本说明</h3>
+          <p>
+            本页按三层证据整理：本项目实际生成的 <code>.trellis/.version</code> 是 <strong>0.5.15</strong>，
+            本机 <code>trellis --version</code> 和 npm latest 都是 <strong>0.5.16</strong>。
+            本目录里的 <code>Trellis/package.json v0.3.5</code> 是旧源码快照，只适合做历史对照，不能当作最新命令流程的唯一依据。
+          </p>
+          <div class="badge-row">
+            <span class="badge">以生成文件为准</span>
+            <span class="badge">CLI 0.5.16</span>
+            <span class="badge">0.5.x 流程</span>
+            <span class="badge">Claude Code</span>
+            <span class="badge">Codex</span>
+            <span class="badge">适合小白快速看懂</span>
+          </div>
+        </div>
+        <div class="mini-card">
+          <h3>一句话理解</h3>
+          <p>
+            Claude Code / Codex 是干活的 AI，Trellis 是让 AI 在项目里知道"这是什么项目、当前任务到哪、上次做到哪、接下来该做什么"的那一层。
+          </p>
+        </div>
+        <div class="mini-card">
+          <h3>这页重点解决</h3>
+          <p>
+            1. 第一次接触 Trellis 到底该怎么理解。
+            <br>2. 只用 Claude、只用 Codex、或者两个都接时分别怎么做。
+            <br>3. 中断以后怎么知道项目进度，用户又该看哪里。
+          </p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="overview">
+    <div class="shell">
+      <div class="section-title reveal">
+        <div>
+          <div class="card-label">Overview</div>
+          <h2>Trellis 到底是什么</h2>
+          <p>
+            如果只用网页版 AI，你每次都在重新开一个临时群聊。Trellis 的作用，是把项目真实上下文落在仓库里，让 AI 每次不是"重新猜"，而是"先读事实，再继续"。
+          </p>
+        </div>
+        <div class="section-index">01</div>
+      </div>
+
+      <div class="comparison">
+        <article class="comparison-card bad reveal">
+          <span class="card-label warm">没有 Trellis</span>
+          <h3>AI 像聪明但健忘的临时工</h3>
+          <p>
+            你说过的技术栈、目录规则、任务边界、上次做到哪，很容易随着上下文清空或换会话被冲掉。
+            结果就是同一件事反复解释，甚至换个会话就写偏。
+          </p>
+          <div class="callout">
+            <strong>常见现象：</strong>
+            AI 忘了项目规则、续工时串仓库、写完代码却没有留下可追踪的过程记录。
+          </div>
+        </article>
+
+        <article class="comparison-card good reveal">
+          <span class="card-label">用了 Trellis</span>
+          <h3>AI 像会看项目档案的正式协作者</h3>
+          <p>
+            Trellis 把项目共享入口、规范、任务、日志沉淀成文件。AI 开工前先读这些材料，收工时再把本次结果记回项目里。
+            这样你换模型、换会话、甚至换一天继续，都还有证据链。
+          </p>
+          <div class="callout">
+            <strong>核心价值：</strong>
+            把"AI 记住了什么"变成"仓库里确实写了什么"。
+          </div>
+        </article>
+      </div>
+
+      <div class="grid-3" style="margin-top: 18px;">
+        <article class="section-card reveal">
+          <span class="card-label">入口</span>
+          <h3>项目是什么</h3>
+          <p>
+            用 <code>AGENTS.md</code> 这类跨平台入口文件告诉 AI 从哪里读项目事实。它不一定包含全部业务背景，真实规则还要落到 <code>.trellis/spec/</code> 等文件里。
+          </p>
+          <ul class="bullet-list">
+            <li>这是哪个项目</li>
+            <li>哪些目录最关键</li>
+            <li>哪些规则是长期有效的</li>
+          </ul>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label olive">流程</span>
+          <h3>当前任务是什么</h3>
+          <p>
+            用 <code>.trellis/tasks/</code> 放任务、PRD、阶段产物，再通过 <code>.trellis/.runtime/sessions/</code> 里的会话指针判断本次 AI 会话正在做哪一件事。
+            具体任务目录、状态和阶段由 <code>task.py</code> 管理，不再只看旧式 <code>.current-task</code> 文件。
+          </p>
+          <ul class="bullet-list">
+            <li>当前任务目录</li>
+            <li>任务状态与目标</li>
+            <li>已归档任务留作追溯</li>
+          </ul>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label warm">记忆</span>
+          <h3>上次做到哪</h3>
+          <p>
+            用 <code>.trellis/workspace/</code> 写 journal，让你和 AI 都能看见上个 session 做了什么、还差什么、下一步建议是什么。
+          </p>
+          <ul class="bullet-list">
+            <li>本次完成了什么</li>
+            <li>留下了哪些文件</li>
+            <li>下次应从哪接着做</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="start">
+    <div class="shell">
+      <div class="section-title reveal">
+        <div>
+          <div class="card-label warm">Start</div>
+          <h2>先分清三件事：接哪一个、首次接入、日常开工</h2>
+          <p>
+            这是最容易混淆的一步。Trellis 不要求你同一项目必须同时装 Claude 和 Codex。
+            <code>trellis init</code> 是把 Trellis 接进项目，不是每天上班的"启动按钮"。
+          </p>
+        </div>
+        <div class="section-index">02</div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom: 18px;">
+        <article class="section-card reveal">
+          <span class="card-label">只用 Claude</span>
+          <h3>适合就想走 Claude Code 工作流</h3>
+          <ul class="bullet-list">
+            <li>初始化：<code>trellis init -u 你的名字 --claude --skip-existing</code></li>
+            <li>会生成：<code>.trellis/</code>、<code>AGENTS.md</code>、<code>.claude/</code></li>
+            <li>日常开工：<code>claude</code>；Claude hook 会注入上下文，显式续工用 <code>/trellis:continue</code></li>
+            <li>主要看：<code>.claude/</code>，按项目需要补读 <code>AGENTS.md</code></li>
+          </ul>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label warm">只用 Codex</span>
+          <h3>适合就想走 Codex skill 工作流</h3>
+          <ul class="bullet-list">
+            <li>初始化：<code>trellis init -u 你的名字 --codex --skip-existing</code></li>
+            <li>会生成：<code>.trellis/</code>、<code>AGENTS.md</code>、<code>.codex/</code>、<code>.agents/skills/</code></li>
+            <li>日常开工：<code>codex</code>；首次无任务时按提示用 <code>$trellis-start</code>，续工用 <code>$trellis-continue</code></li>
+            <li>主要看：<code>AGENTS.md</code>、<code>.agents/skills/</code>、<code>.codex/</code></li>
+          </ul>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label olive">两个都接</span>
+          <h3>适合同仓库切换 Claude 和 Codex</h3>
+          <ul class="bullet-list">
+            <li>初始化：<code>trellis init -u 你的名字 --claude --codex --skip-existing</code></li>
+            <li>会同时生成：<code>.claude/</code>、<code>.codex/</code>、<code>.agents/skills/</code> 和共享层</li>
+            <li>日常开工：今天用哪个工具，就启动哪个</li>
+            <li>共享事实层：<code>AGENTS.md</code> + <code>.trellis/</code>；平台入口仍然各走各的</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="section-card reveal" style="margin-bottom: 18px;">
+        <span class="card-label olive">先判断依据</span>
+        <h3>源码、生成文件、官方 latest 不一致时，先信谁？</h3>
+        <table class="tool-table" style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th>优先级</th>
+              <th>看哪里</th>
+              <th>这次项目里的结论</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>当前项目实际生成文件</td>
+              <td><code>.trellis/.version</code> 是 <code>0.5.15</code>；<code>.claude/commands/trellis/</code> 只有 <code>continue.md</code> 和 <code>finish-work.md</code>。</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>本机 CLI 与官方 npm latest</td>
+              <td><code>trellis --version</code> 和 npm latest 都是 <code>0.5.16</code>；<code>trellis update --dry-run</code> 会告诉你升级会改哪些模板。</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>下载的旧源码目录</td>
+              <td><code>Trellis/package.json</code> 是 <code>0.3.5</code>，可用来理解历史设计，但不能直接照抄里面的旧命令到 0.5.x 项目。</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top: 16px;">
+          <strong>这次源码剖析后的教学口径：</strong>
+          <p>
+            <code>Trellis/src/cli/index.ts</code> 只能证明 CLI 暴露了 <code>init</code> / <code>update</code> 以及
+            <code>--claude</code> / <code>--codex</code> 这些平台开关；<code>Trellis/src/configurators/claude.ts</code>
+            和 <code>Trellis/src/configurators/codex.ts</code> 解释了模板目录怎么被复制到项目里。
+            但这份源码快照里的 <code>src/templates/claude/commands/trellis/start.md</code>、
+            <code>record-session.md</code>、Codex 旧 <code>$start</code> 文案都属于旧版模板线索。
+            真正教用户复制时，必须以本项目生成后的 <code>.claude/</code>、<code>.codex/</code>、
+            <code>.agents/skills/</code> 和 <code>.trellis/workflow.md</code> 为准。
+          </p>
+        </div>
+        <table class="tool-table" style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th>证据文件</th>
+              <th>教案里应该怎么讲</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>.trellis/workflow.md</code></td>
+              <td>最新日常流程是 Phase 1 Plan、Phase 2 Execute、Phase 3 Finish；<code>finish-work</code> 在工作提交之后。</td>
+            </tr>
+            <tr>
+              <td><code>.trellis/scripts/task.py</code></td>
+              <td><code>create</code> 进入 planning；<code>start</code> 进入 in_progress；<code>finish</code> 只清指针、主要用于排错；<code>archive</code> 才完成归档。</td>
+            </tr>
+            <tr>
+              <td><code>.claude/settings.json</code></td>
+              <td>Claude 有 <code>SessionStart</code>、<code>PreToolUse</code>、<code>UserPromptSubmit</code> hooks，适合主会话派发 implement/check agent。</td>
+            </tr>
+            <tr>
+              <td><code>.codex/config.toml</code> + <code>.codex/hooks.json</code></td>
+              <td>Codex 默认保留 <code>AGENTS.md</code> 为项目说明入口，hook 只注册 <code>UserPromptSubmit</code>。用户级开启 hooks、信任项目并在 <code>/hooks</code> 批准后，普通开发默认 inline。</td>
+            </tr>
+            <tr>
+              <td><code>.agents/skills/trellis-*/SKILL.md</code></td>
+              <td>Codex 用户复制时写 <code>$trellis-start</code>、<code>$trellis-continue</code>、<code>$trellis-before-dev</code>、<code>$trellis-check</code>。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid-2">
+        <article class="glass-card reveal">
+          <span class="card-label">首次接入</span>
+          <h3>只在第一次做</h3>
+          <p>
+            新项目第一次装 Trellis，或者老项目第一次补装 Claude / Codex 支持时，再用初始化命令。
+            <code>trellis init</code> 负责把平台目录、<code>.trellis/</code> 和 <code>AGENTS.md</code> 写进项目。
+          </p>
+          <div class="terminal" style="margin-top: 18px;">
+            <div class="terminal-top">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <span>initial setup</span>
+            </div>
+            <div class="terminal-body"><pre><span class="comment"># 只在第一次接入时运行</span>
+<span class="prompt">git init</span>
+<span class="prompt">npm install -g @mindfoldhq/trellis@latest</span>
+
+<span class="comment"># 只用 Claude</span>
+<span class="prompt">trellis init -u 你的名字 --claude --skip-existing</span>
+
+<span class="comment"># 只用 Codex</span>
+<span class="prompt">trellis init -u 你的名字 --codex --skip-existing</span>
+
+<span class="comment"># 两个都接</span>
+<span class="prompt">trellis init -u 你的名字 --claude --codex --skip-existing</span></pre></div>
+          </div>
+          <div class="callout" style="margin-top: 16px;">
+            <strong>Mac 权限提示</strong>
+            <p>如果执行 <code>npm install -g @mindfoldhq/trellis@latest</code> 报 <code>permission denied</code>，可以改用 <code>sudo npm install -g @mindfoldhq/trellis@latest</code>。输入的是你的开机密码；终端里打字时通常不会显示字符，这是正常现象，输完按回车即可。</p>
+          </div>
+        </article>
+
+        <article class="glass-card reveal">
+          <span class="card-label olive">日常开工</span>
+          <h3>每天真正会用到的是这个</h3>
+          <p>
+            项目已经接入 Trellis 之后，日常只是进入项目目录，然后启动你要用的 AI 工具。
+            不要把 <code>trellis init</code> 当成每天开工按钮。
+          </p>
+          <div class="terminal" style="margin-top: 18px;">
+            <div class="terminal-top">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <span>daily workflow</span>
+            </div>
+            <div class="terminal-body"><pre><span class="comment"># Claude Code</span>
+<span class="prompt">cd "你的项目路径"</span>
+<span class="prompt">claude</span>
+
+<span class="comment"># Codex</span>
+<span class="prompt">cd "你的项目路径"</span>
+<span class="prompt">codex</span></pre></div>
+          </div>
+          <div class="callout" style="margin-top: 16px;">
+            <strong>Codex 首次使用前再做一次设置：</strong>
+            <p>项目里的 <code>.codex/config.toml</code> 不能替你打开用户级 feature。你需要在 <code>~/.codex/config.toml</code> 里启用 <code>[features].hooks = true</code>，把项目标记为 trusted，然后在 Codex 里用 <code>/hooks</code> 批准 Trellis hook。</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="callout reveal">
+        <strong>最实用的判断标准：</strong>
+        如果你只是想"今天继续做昨天的项目"，不要再跑 <code>trellis init</code>。
+        你需要做的是启动这次准备使用的那个工具，例如 <code>claude</code> 或 <code>codex</code>，然后先让 AI 读取项目证据链。
+      </div>
+    </div>
+  </section>
+
+  <section id="map">
+    <div class="shell">
+      <div class="section-title reveal">
+        <div>
+          <div class="card-label">Project Map</div>
+          <h2>新手先记住 4 个必看位置，另外几个按工具看</h2>
+          <p>
+            现在 Claude 和 Codex 可以分开接，所以不要把 <code>.claude/</code>、<code>.agents/skills/</code>、<code>.opencode/</code> 都当成每个项目一定存在。
+            更适合小白的记法是：先看所有项目共有的 4 个位置，再看你这次实际接入的那几个平台目录。
+          </p>
+        </div>
+        <div class="section-index">03</div>
+      </div>
+
+      <div class="grid-2">
+        <article class="section-card reveal">
+          <span class="card-label">必看 1</span>
+          <h3><code>AGENTS.md</code>：先确认项目入口</h3>
+          <p>
+            它更像跨平台入口和导航，不一定写满业务背景。你先看它，是为了知道 AI 应该从哪里继续读项目事实。
+          </p>
+          <ul class="bullet-list">
+            <li>适合开工前先看。</li>
+            <li>适合续工时先确认"我是不是进对仓库了"。</li>
+            <li>真正的业务规则、任务状态和续工记录，通常还要继续看 <code>.trellis/spec/</code>、<code>.trellis/tasks/</code> 和 <code>.trellis/workspace/</code>。</li>
+          </ul>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label olive">必看 2</span>
+          <h3><code>.trellis/tasks/</code>：先看现在正在做什么</h3>
+          <p>
+            这里是任务区。当前 0.5.x 的"当前任务"主要由 <code>.trellis/.runtime/sessions/</code> 里的会话指针决定，
+            手动查看时最好配合脚本确认，不要再只看旧式全局 <code>.current-task</code> 文件。
+          </p>
+          <ul class="bullet-list">
+            <li>用 <code>task.py list</code> 看哪个任务带有 current 标记。</li>
+            <li>看任务目标和验收标准。</li>
+            <li>看还有没有未完成的下一步。</li>
+          </ul>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label warm">必看 3</span>
+          <h3><code>.trellis/workspace/</code>：先看上次做到哪</h3>
+          <p>
+            这里通常是 journal。最适合回答"上一轮具体做了什么、改了哪些文件、下次该从哪继续"。
+          </p>
+          <ul class="bullet-list">
+            <li>中断后恢复上下文先看它。</li>
+            <li>用户想知道进度时也先看它。</li>
+            <li>它比聊天记录更可靠，因为它已经写回仓库。</li>
+          </ul>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label">必看 4</span>
+          <h3><code>.trellis/spec/</code>：正式开写前必须看规则</h3>
+          <p>
+            它不需要第一眼全读，但一旦准备写代码，就必须读相关 index 和 checklist 指向的具体规则文件。
+          </p>
+          <ul class="bullet-list">
+            <li>看代码风格、目录约定、质量标准。</li>
+            <li>发现新规则时，也会更新回这里。</li>
+            <li>它解决的是"怎么做才算符合这个项目"。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="section-card reveal" style="margin-top: 18px;">
+        <span class="card-label warm">按工具再看</span>
+        <h3>剩下这些位置，不是每个项目都有</h3>
+        <table class="tool-table" style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th>位置</th>
+              <th>什么时候会出现</th>
+              <th>主要给谁看</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>.claude/</code></td>
+              <td>只有你接入 Claude 时才会生成</td>
+              <td>Claude Code。当前 0.5.x 生成 <code>/trellis:continue</code>、<code>/trellis:finish-work</code>，并配套 <code>.claude/hooks/</code>、<code>.claude/agents/</code>、<code>.claude/skills/</code>。</td>
+            </tr>
+            <tr>
+              <td><code>.codex/</code></td>
+              <td>只有你接入 Codex 时才会生成</td>
+              <td>Codex 项目级 config、agents 和 hooks。当前 <code>.codex/hooks.json</code> 注册的是 <code>UserPromptSubmit</code> workflow-state hook；Codex hooks 还需要用户级开启和审批。</td>
+            </tr>
+            <tr>
+              <td><code>.agents/skills/</code></td>
+              <td>接入 Codex，或其他支持共享 skills 的平台时生成</td>
+              <td>共享 skills 目录。Codex 的显式入口常见是 <code>$trellis-start</code>、<code>$trellis-continue</code>、<code>$trellis-finish-work</code>。</td>
+            </tr>
+            <tr>
+              <td><code>.opencode/</code></td>
+              <td>接入 OpenCode 时才会生成</td>
+              <td>OpenCode 的插件、命令和 agents 目录，和 Codex 不是一回事。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout reveal">
+        <strong>最适合小白的阅读顺序：</strong>
+        先看 <code>AGENTS.md</code>，再用 <code>task.py list</code> 或 <code>get_context.py</code> 确认当前任务，然后看 <code>.trellis/workspace/</code> 最新 journal。只要准备改代码，就必须补读相关 <code>.trellis/spec/</code>。
+        仓库里的事实永远优先于 AI 自己的记忆。
+      </div>
+    </div>
+  </section>
+
+  <section id="tools">
+    <div class="shell">
+      <div class="section-title reveal">
+        <div>
+          <div class="card-label olive">Tools</div>
+          <h2>先选接入方式，再看 Claude 和 Codex 怎么分别使用</h2>
+          <p>
+            两者都能读项目文件、改代码、跑命令，但入口格式、自动注入方式、项目目录并不一样。
+            你可以只用其中一个，不需要为了用 Trellis 强行两个一起装。
+            按当前生成文件，Claude 走 <code>.claude/</code> 的 commands、hooks、agents、skills + <code>/trellis:continue</code> / <code>/trellis:finish-work</code>；
+            Codex 走 <code>AGENTS.md</code> + <code>.codex/</code> hooks/agents + <code>.agents/skills/</code> 里的 <code>$trellis-...</code> skills。
+          </p>
+        </div>
+        <div class="section-index">04</div>
+      </div>
+
+      <div class="section-card reveal" style="margin-bottom: 18px;">
+        <span class="card-label olive">先做选择</span>
+        <h3>只装哪个，就只看哪一套入口</h3>
+        <table class="tool-table" style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th>接入方式</th>
+              <th>终端初始化</th>
+              <th>你平时真正输入什么</th>
+              <th>优先读哪些文件</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>只用 Claude</td>
+              <td><code>trellis init -u 你的名字 --claude --skip-existing</code></td>
+              <td><code>claude</code>；显式续工用 <code>/trellis:continue</code>，收尾用 <code>/trellis:finish-work</code></td>
+              <td><code>.claude/</code>，必要时补读 <code>AGENTS.md</code> 和 <code>.trellis/</code></td>
+            </tr>
+            <tr>
+              <td>只用 Codex</td>
+              <td><code>trellis init -u 你的名字 --codex --skip-existing</code></td>
+              <td><code>codex</code>；无任务启动用 <code>$trellis-start</code>，续工用 <code>$trellis-continue</code></td>
+              <td><code>AGENTS.md</code>、<code>.codex/</code>、<code>.agents/skills/</code>、<code>.trellis/</code></td>
+            </tr>
+            <tr>
+              <td>两个都接</td>
+              <td><code>trellis init -u 你的名字 --claude --codex --skip-existing</code></td>
+              <td>当天用谁，就输入谁那套入口；不要混用 <code>/...</code> 和 <code>$...</code></td>
+              <td>共享读 <code>AGENTS.md</code> 和 <code>.trellis/</code>，平台入口分别看 <code>.claude/</code> 或 <code>.codex/</code> / <code>.agents/skills/</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top: 16px;">
+          <strong><code>-y / --yes</code> 的默认值也要记住：</strong>
+          如果不显式传平台，当前 Trellis 源码/CLI 默认勾选的是 <strong>Claude Code + Cursor</strong>，不是 Codex。
+          如果你要让 Codex 也一起接入，还是要显式加 <code>--codex</code>。
+        </div>
+      </div>
+
+      <div class="tool-grid">
+        <article class="tool-card reveal">
+          <span class="card-label">Claude Code</span>
+          <h3>命令入口是 Slash Commands</h3>
+          <p>
+            Claude Code 主要通过 <code>.claude/commands/trellis/</code> 里的命令文件和 <code>.claude/hooks/</code> 工作。
+            当前 0.5.x 项目实际生成的 slash commands 是 <code>/trellis:continue</code> 和 <code>/trellis:finish-work</code>；
+            需求梳理、编码前读规范、检查和更新 spec 主要由生成的 skills / agents 和 per-turn workflow-state 驱动。
+            如果项目把 <code>AGENTS.md</code> 定义成跨平台共享首页，Claude 也应该遵守并读取，但这属于项目层共享入口，不是 Claude 模板默认唯一主入口。
+          </p>
+          <div class="tool-chip-row">
+            <span class="tool-chip">/trellis:continue</span>
+            <span class="tool-chip">/trellis:finish-work</span>
+            <span class="tool-chip">trellis-brainstorm</span>
+            <span class="tool-chip">trellis-check</span>
+          </div>
+          <ul class="bullet-list">
+            <li>Claude 的 <code>SessionStart</code> hook 会在启动、清空、压缩后注入上下文；通常不再需要手动跑旧版 <code>/trellis:start</code>。</li>
+            <li>Claude 使用 <code>.claude/commands/</code>、<code>.claude/hooks/</code>、<code>.claude/agents/</code>、<code>.claude/skills/</code>；不要把 Codex 的 <code>.agents/skills/</code> 当成 Claude 主入口。</li>
+            <li><code>PreToolUse</code> hook 会在派发 <code>trellis-implement</code> / <code>trellis-check</code> 之前注入 PRD、JSONL 上下文和相关 spec。</li>
+            <li><code>AGENTS.md</code> 对 Claude 也有约束力；区别在于 Claude 的平台专属主入口仍然是 <code>.claude/</code> 这套命令和 hooks。</li>
+            <li>如果旧教程或旧源码里出现 <code>/trellis:start</code>、<code>/trellis:record-session</code>，以你项目里实际存在的 <code>.claude/commands/trellis/</code> 文件为准。</li>
+          </ul>
+        </article>
+
+        <article class="tool-card reveal">
+          <span class="card-label warm">Codex</span>
+          <h3>命令入口是 <code>$skill</code>，不是 <code>/slash</code></h3>
+          <p>
+            Codex 不能直接执行 Claude 那套 <code>/trellis:start</code> 或 <code>/trellis:finish-work</code> 命令。
+            它用的是 <code>$trellis-start</code>、<code>$trellis-continue</code>、<code>$trellis-finish-work</code> 这类带前缀的 skills，
+            并结合 <code>AGENTS.md</code>、<code>.codex/</code> 与 <code>.agents/skills/</code> 工作。
+          </p>
+          <div class="tool-chip-row">
+            <span class="tool-chip">$trellis-start</span>
+            <span class="tool-chip">$trellis-continue</span>
+            <span class="tool-chip">$trellis-finish-work</span>
+            <span class="tool-chip">$trellis-brainstorm</span>
+            <span class="tool-chip">$trellis-before-dev</span>
+            <span class="tool-chip">$trellis-check</span>
+          </div>
+          <ul class="bullet-list">
+            <li>可以直接说人话，但想显式跑流程时要用 <code>$...</code>，不是 <code>/...</code>；Codex 不会把 Claude 的 slash command 当成可执行技能。</li>
+            <li>当前 Codex 既有 <code>.codex/</code> 项目级 hooks/config/agents，也会写共享 <code>.agents/skills/</code>。</li>
+            <li>这次生成的 <code>.codex/hooks.json</code> 只启用了 <code>UserPromptSubmit</code>；即使目录里有 <code>.codex/hooks/session-start.py</code>，也不要把它当成当前已注册的 Codex SessionStart 入口。</li>
+            <li>Codex hooks 需要用户级 <code>[features].hooks = true</code>、信任当前项目，并在 <code>/hooks</code> TUI 里批准 Trellis hook，workflow-state 才会自动注入。</li>
+            <li>Codex 默认 <code>dispatch_mode</code> 是 inline：主 Codex 会话直接加载 <code>trellis-before-dev</code> 后改代码，再用 <code>trellis-check</code> 检查；除非你显式把配置改成 <code>sub-agent</code>。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="grid-2" style="margin-top: 18px;">
+        <article class="section-card reveal">
+          <span class="card-label">Claude 可复制</span>
+          <h3>新功能任务的 Claude 口令</h3>
+          <div class="copy-block">
+            <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>/trellis:continue
+请按 Trellis 当前 workflow 处理这个需求：&lt;你的目标&gt;。
+
+如果当前没有 active task，请先创建 planning 任务并加载 trellis-brainstorm 形成 prd.md。
+PRD 确认后，如果当前平台支持 hook / sub-agent，就让 AI 自动注入上下文；只有在自动化不可用时，才手动整理 implement.jsonl 和 check.jsonl，然后再运行 task.py start 进入 in_progress。
+实现阶段请派发 trellis-implement；检查阶段请派发 trellis-check。
+提交前先给我 commit plan，等我确认后再提交。
+提交完成后再运行 /trellis:finish-work。</pre>
+          </div>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label warm">Codex 可复制</span>
+          <h3>新功能任务的 Codex 口令</h3>
+          <div class="copy-block">
+            <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>$trellis-start
+如果当前已经有 active task，请把第一行换成 $trellis-continue。
+请按 Trellis 当前 workflow 处理这个需求：&lt;你的目标&gt;。
+
+如果当前没有 active task，请先创建 planning 任务并加载 $trellis-brainstorm 形成 prd.md。
+Codex 默认 inline 模式：PRD 确认后运行 task.py start，跳过 implement.jsonl/check.jsonl curation。
+进入 in_progress 后先加载 $trellis-before-dev，再由主会话直接实现。
+实现完成后加载 $trellis-check，必要时加载 $trellis-update-spec。
+提交前先给我 commit plan，等我确认后再提交。
+提交完成后再运行 $trellis-finish-work。</pre>
+          </div>
+        </article>
+      </div>
+
+      <div class="section-card reveal" style="margin-top: 18px;">
+        <span class="card-label warm">最容易搞混的地方</span>
+        <h3>Claude 和 Codex 不是同一套入口文件</h3>
+        <table class="tool-table" style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th>维度</th>
+              <th>Claude Code</th>
+              <th>Codex</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>主命令格式</td>
+              <td><code>/trellis:continue</code>、<code>/trellis:finish-work</code></td>
+              <td><code>$trellis-start</code>、<code>$trellis-continue</code>、<code>$trellis-finish-work</code></td>
+            </tr>
+            <tr>
+              <td>平台专属目录</td>
+              <td><code>.claude/commands/trellis/</code>、<code>.claude/skills/</code>、<code>.claude/agents/</code>、<code>.claude/hooks/</code></td>
+              <td><code>.codex/</code>、<code>.agents/skills/</code>、<code>AGENTS.md</code></td>
+            </tr>
+            <tr>
+              <td>默认自动注入</td>
+              <td>Claude <code>SessionStart</code>、<code>PreToolUse</code>、<code>UserPromptSubmit</code> hooks 注入上下文、sub-agent 上下文和 workflow-state</td>
+              <td><code>UserPromptSubmit</code> hook 注入轻量 workflow-state；当前 <code>hooks.json</code> 未注册 Codex <code>SessionStart</code>。启用前需要用户级 hooks、trusted project 和 <code>/hooks</code> 批准。</td>
+            </tr>
+            <tr>
+              <td>进入实现前</td>
+              <td>planning 阶段要把 spec / research 路径写进 <code>implement.jsonl</code> 和 <code>check.jsonl</code>，供 sub-agent 注入</td>
+              <td>默认 inline 模式跳过 JSONL curation；主会话用 <code>$trellis-before-dev</code> 自己读 spec 后再改代码</td>
+            </tr>
+            <tr>
+              <td>会不会读 <code>.agents/skills/</code></td>
+              <td>默认不把它当主入口；Claude 用 <code>.claude/skills/</code></td>
+              <td>会读，这是 Codex 的主要 skill 入口之一</td>
+            </tr>
+            <tr>
+              <td>并行入口</td>
+              <td>当前 0.5.x 核心教程不再把 <code>parallel</code> 当作日常入口</td>
+              <td>默认 inline，不靠并行 sub-agent 完成普通任务</td>
+            </tr>
+            <tr>
+              <td><code>AGENTS.md</code> 的角色</td>
+              <td>共享项目指令；Claude 也应遵守，但平台专属主入口仍是 <code>.claude/</code></td>
+              <td>默认更重要的共享入口之一</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-card reveal" style="margin-top: 18px;">
+        <table class="tool-table">
+          <thead>
+            <tr>
+              <th>场景</th>
+              <th>Claude Code 常见说法</th>
+              <th>Codex 常见说法</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>开工建上下文</td>
+              <td>启动 <code>claude</code> 后让 hook 自动注入；显式恢复任务用 <code>/trellis:continue</code></td>
+              <td><code>$trellis-start</code> 用于无任务/无 hook bootstrap；已有任务时用 <code>$trellis-continue</code></td>
+            </tr>
+            <tr>
+              <td>梳理需求</td>
+              <td>直接描述需求；AI 按 workflow-state 加载 <code>trellis-brainstorm</code></td>
+              <td><code>$trellis-brainstorm</code> 或 "先给我最小可行方案和任务拆分"</td>
+            </tr>
+            <tr>
+              <td>编码前看规范</td>
+              <td>Claude 主会话通常派发 <code>trellis-implement</code>，上下文由 JSONL 注入</td>
+              <td><code>$trellis-before-dev</code>，Codex inline 模式下主会话自己读规范</td>
+            </tr>
+            <tr>
+              <td>正式开发</td>
+              <td>"先读仓库事实，再按当前任务实现"</td>
+              <td>"只采用能被当前仓库文件印证的信息，再开始改代码"</td>
+            </tr>
+            <tr>
+              <td>检查代码</td>
+              <td>Claude 主会话派发 <code>trellis-check</code> sub-agent，或按当前 workflow 执行检查</td>
+              <td><code>$trellis-check</code></td>
+            </tr>
+            <tr>
+              <td>完工检查</td>
+              <td><code>/trellis:finish-work</code></td>
+              <td><code>$trellis-finish-work</code>，但要在 Phase 3.4 工作提交之后</td>
+            </tr>
+            <tr>
+              <td>写 session 日志</td>
+              <td colspan="2">0.5.x 已并入 <code>finish-work</code>：归档任务并写 journal；不要再找单独的 <code>record-session</code> 命令。</td>
+            </tr>
+            <tr>
+              <td>沉淀长期规则</td>
+              <td>AI 加载 <code>trellis-update-spec</code>，或按项目实际 skill/命令为准</td>
+              <td><code>$trellis-update-spec</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout reveal">
+        <strong>这里必须分清：</strong>
+        Claude 的 <code>/trellis:...</code> 是 slash commands，来自 <code>.claude/commands/</code>；
+        Codex 的 <code>$trellis-...</code> 是 skills，来自 <code>.agents/skills/</code>。
+        不能把 Claude 的命令格式直接套给 Codex。<code>AGENTS.md</code> 对两边都能有帮助，但它对 Codex 更接近默认入口；对 Claude 更像项目层要求它补读的共享摘要。
+      </div>
+    </div>
+  </section>
+
+  <section id="example">
+    <div class="shell">
+      <div class="section-title reveal">
+        <div>
+          <div class="card-label">Example</div>
+          <h2>从 0 到 1：从空项目开始做一个 Todo List，顺便学会怎么用</h2>
+          <p>
+            下面不用"已经有项目"的情况，直接从一个空文件夹开始。
+            目标是做一个最小可用的 Todo List Web 应用。你可以只看 Claude 版，也可以只看 Codex 版；每一步都给出能直接复制的终端命令或 AI 提示词。
+          </p>
+        </div>
+        <div class="section-index">05</div>
+      </div>
+
+      <div class="section-card reveal" style="margin-bottom: 18px;">
+        <span class="card-label olive">0-1 / 1-100</span>
+        <h3>把实战流程压缩成两张路线图</h3>
+        <table class="tool-table" style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th>阶段</th>
+              <th>Claude 用户复制/观察什么</th>
+              <th>Codex 用户复制/观察什么</th>
+              <th>成功标准</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>0-1 第一版</td>
+              <td><code>/trellis:continue</code> → brainstorm → curate JSONL → <code>task.py start</code> → 派发 implement/check → 提交 → <code>/trellis:finish-work</code></td>
+              <td>无任务用 <code>$trellis-start</code>，已有任务用 <code>$trellis-continue</code> → <code>$trellis-brainstorm</code> → <code>task.py start</code> → <code>$trellis-before-dev</code> → 实现 → <code>$trellis-check</code> → 提交 → <code>$trellis-finish-work</code></td>
+              <td>Todo List 能新增、完成、删除，刷新后仍保留；任务有 PRD、代码有提交、journal 有记录。</td>
+            </tr>
+            <tr>
+              <td>1-100 完善</td>
+              <td>每次只开一个小任务：筛选、编辑、统计、样式、bug 修复分别走同一闭环。</td>
+              <td>每轮都先续工和读上下文，避免直接改；Codex inline 必须先 <code>$trellis-before-dev</code>。</td>
+              <td>每轮都有可测试验收标准；完成后更新 spec 或 journal，下一轮能接得上。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="step-stack">
+        <article class="step-item reveal" data-step="0">
+          <h3>第 0 步：先有一个空项目，再接入 Trellis</h3>
+          <p>
+            假设你电脑上现在只有一个新文件夹。我们先把它变成一个可以交给 AI 持续协作的项目。下面三组 <code>trellis init</code> 选一组执行，不要三组都跑。
+          </p>
+          <div class="terminal" style="margin-top: 16px;">
+            <div class="terminal-top">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <span>project bootstrap</span>
+            </div>
+            <div class="terminal-body"><pre><span class="prompt">mkdir todo-trellis-demo</span>
+<span class="prompt">cd todo-trellis-demo</span>
+<span class="prompt">git init</span>
+<span class="prompt">npm install -g @mindfoldhq/trellis@latest</span>
+
+<span class="comment"># 只接 Claude</span>
+<span class="prompt">trellis init -u 你的名字 --claude --skip-existing</span>
+
+<span class="comment"># 只接 Codex</span>
+<span class="prompt">trellis init -u 你的名字 --codex --skip-existing</span>
+
+<span class="comment"># Claude + Codex 都接</span>
+<span class="prompt">trellis init -u 你的名字 --claude --codex --skip-existing</span>
+
+<span class="comment"># 选好之后启动当天要用的工具</span>
+<span class="prompt">claude</span>
+<span class="comment"># 或者</span>
+<span class="prompt">codex</span></pre></div>
+          </div>
+          <div class="callout" style="margin-top: 16px;">
+            <strong>只接 Codex 或两个都接时：</strong>
+            <p>Codex 的项目配置已经生成，但 hooks 还要你在用户配置里启用并批准。首次运行 <code>codex</code> 前，先确认 <code>~/.codex/config.toml</code> 至少包含下面两段；进入 Codex 后再执行 <code>/hooks</code> 批准 Trellis hook。</p>
+            <div class="terminal" style="margin-top: 12px;">
+              <div class="terminal-top">
+                <div class="dots"><span></span><span></span><span></span></div>
+                <span>~/.codex/config.toml</span>
+              </div>
+              <div class="terminal-body"><pre><span class="output">[features]
+hooks = true
+
+[projects."C:/path/to/todo-trellis-demo"]
+trust_level = "trusted"</span></pre></div>
+            </div>
+          </div>
+          <div class="callout" style="margin-top: 16px;">
+            <strong>初始化后先处理 <code>00-bootstrap-guidelines</code>：</strong>
+            首次初始化时，Trellis 会自动创建 <code>.trellis/tasks/00-bootstrap-guidelines</code>。它不是报错，而是提醒你先把 <code>.trellis/spec/</code> 按真实项目规则补起来。不同版本或不同会话里它不一定显示成 current task，但会出现在 active tasks 里；空项目可以先写一份最小规范，或者明确让 AI 归档这个任务，再创建 Todo 任务。
+          </div>
+          <div class="terminal" style="margin-top: 16px;">
+            <div class="terminal-top">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <span>optional manual check</span>
+            </div>
+            <div class="terminal-body"><pre><span class="comment"># Windows 手动执行时用 python</span>
+<span class="prompt">python "./.trellis/scripts/task.py" list</span>
+<span class="prompt">python "./.trellis/scripts/task.py" current --source</span>
+<span class="comment"># 只有你决定暂时跳过 bootstrap 时才归档</span>
+<span class="prompt">python "./.trellis/scripts/task.py" archive "00-bootstrap-guidelines"</span></pre></div>
+          </div>
+        </article>
+
+        <article class="step-item reveal" data-step="1">
+          <h3>第 1 步：第一次进入 AI，先建任务，不要立刻写代码</h3>
+          <p>
+            现在你进入 Claude 或 Codex。先确认 <code>00-bootstrap-guidelines</code> 已经处理或准备跳过，再让 AI 为 Todo 建立新的任务和最小目标。
+            最新流程里，<code>task.py create</code> 只创建 <code>planning</code> 任务；如果当前 AI 会话有 session identity，它还会顺手把新任务设成当前会话的 active task。
+            这里不要立刻 <code>task.py start</code>，因为 start 会进入实现阶段。
+          </p>
+          <div class="role-grid">
+            <div class="role-box">
+              <strong>复制给 Claude</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>/trellis:continue
+这是一个全新的空项目。请先用 get_context.py 和 task.py list 确认当前任务是否还是 00-bootstrap-guidelines。
+如果是，请先说明它的作用，并等我确认后归档它。
+接着为最小可用 Todo List 创建一个 planning 任务，写出第一版范围、建议文件结构和验收标准。
+先不要运行 task.py start，也不要开始写代码。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>复制给 Codex</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>$trellis-start
+这是一个全新的空项目。请先用 get_context.py 和 task.py list 确认当前任务是否还是 00-bootstrap-guidelines。
+如果已经有 active task，请改用 $trellis-continue 续工，而不是重复 start。
+如果是，请先说明它的作用，并等我确认后归档它。
+接着为最小可用 Todo List 创建一个 planning 任务，写出第一版范围、建议文件结构和验收标准。
+先不要运行 task.py start，也不要开始写代码。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>这一步的作用</strong>
+              <p>让 AI 先把"任务是什么、第一版做到哪里算完成"写进 <code>prd.md</code>。这样后面每一步都能围绕可验证目标推进。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step-item reveal" data-step="2">
+          <h3>第 2 步：让 AI 先把 Todo List 第一版规划清楚</h3>
+          <p>
+            这里我们把需求说得更具体一点，让 AI 明确 Todo List 的第一版只做最基本功能，不要一上来加登录、后端、多人协作。
+          </p>
+          <div class="role-grid">
+            <div class="role-box">
+              <strong>复制给 Claude</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>Todo List 第一版只做 4 件事：新增任务、标记完成、删除任务、刷新后还在。
+技术上先用最简单的静态网页方案：index.html、style.css、app.js。
+请加载 trellis-brainstorm，把当前任务的 prd.md 补完整。
+验收标准必须可测试：能新增、能切换完成、能删除、刷新后数据仍保留。
+请明确 out of scope：登录、后端、多人协作、复杂动画暂不做。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>复制给 Codex</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>$trellis-brainstorm
+Todo List 第一版只做 4 件事：新增任务、标记完成、删除任务、刷新后还在。
+技术上先用最简单的静态网页方案：index.html、style.css、app.js。
+请把当前任务的 prd.md 补完整。
+验收标准必须可测试：能新增、能切换完成、能删除、刷新后数据仍保留。
+请明确 out of scope：登录、后端、多人协作、复杂动画暂不做。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>这一步的作用</strong>
+              <p>把"我要个 Todo 应用"变成"第一版应该具体做到什么"。以后中断续工时，也能直接围绕这个任务继续。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step-item reveal" data-step="3">
+          <h3>第 3 步：先让上下文到位，再进入 in_progress</h3>
+          <p>
+            <code>prd.md</code> 清楚以后，下一步不是让用户手动一行行补上下文，而是把实现和检查阶段该读的材料接进来。
+            Claude / hook 路径可以由 AI 或平台自动注入 <code>implement.jsonl</code> / <code>check.jsonl</code>；Codex 默认 inline 路径则直接在 Phase 2 读 <code>$trellis-before-dev</code>，不靠手动整理 JSONL。
+            下面两段只是手动接管时的兜底模板，不是每次都要你先复制给 AI；正常情况下，AI 会按 hook / workflow 自己继续。
+          </p>
+          <div class="role-grid context-grid">
+            <div class="role-box">
+              <strong>Claude 兜底提示</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>请准备进入实现阶段，但先不要写代码；如果当前平台支持 hook / sub-agent，请优先让 AI 自动注入上下文，而不是手动一行行补 JSONL。只有在自动化不可用时，才把本任务需要的 spec / research 文件写进 implement.jsonl 和 check.jsonl。这个静态 Todo 示例至少应考虑 .trellis/spec/frontend/index.md 和相关 quality / component 指南；如果指南还是空模板，请说明实际可用约束。完成后再运行 python ./.trellis/scripts/task.py start &lt;task-dir&gt;，然后告诉我当前任务是否已经进入 in_progress。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>Codex 兜底提示</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>Codex 默认会按 workflow 自己继续；这段只在你想手动接管、或者自动化没接上时使用。请先确认当前 prd.md 已完整，然后运行 python ./.trellis/scripts/task.py start &lt;task-dir&gt;。进入 in_progress 后，下一步请加载 $trellis-before-dev，读取相关 spec，再开始实现。这一阶段不需要手动整理 implement.jsonl / check.jsonl，也不要派发 trellis-implement / trellis-check sub-agent。</pre>
+              </div>
+            </div>
+            <div class="role-box context-note">
+              <strong>这一步的边界</strong>
+              <p><code>task.py start</code> 只负责把任务从 <code>planning</code> 翻到 <code>in_progress</code>。是否需要人手补上下文，取决于当前平台有没有 hook / 自动注入；有就让 AI 自动做，没就再手动兜底。换句话说，这里不是要求你每次都“负责喂给 Codex”，而是给你一个可手动接管的备用入口。如果 shell 里没有 session identity，当前脚本会 degraded：状态仍会前进，但不会持久化本会话指针。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step-item reveal" data-step="4">
+          <h3>第 4 步：实现第一版，但只做 PRD 里的范围</h3>
+          <p>
+            现在才开始写代码。第一版只做新增、完成切换、删除、localStorage 持久化；不要顺手加登录、后端、多人协作。
+          </p>
+          <div class="role-grid">
+            <div class="role-box">
+              <strong>复制给 Claude</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>按当前任务的 prd.md 实现第一版 Todo List。
+请按 workflow 派发 trellis-implement，dispatch prompt 第一行必须是：
+Active task: &lt;task path&gt;
+实现范围只限：新增任务、标记完成、删除任务、localStorage 持久化。
+不要加入登录、后端、多人协作或超出 PRD 的功能。
+实现结束后说明改了哪些文件，以及我应该如何手动验收。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>复制给 Codex</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>$trellis-before-dev
+按当前任务的 prd.md 实现第一版 Todo List。
+开始前先读取相关 .trellis/spec/，并说明准备创建或修改哪些文件。
+实现范围只限：新增任务、标记完成、删除任务、localStorage 持久化。
+不要加入登录、后端、多人协作或超出 PRD 的功能。
+做完后说明改了哪些文件，以及我应该如何手动验收。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>这一步的作用</strong>
+              <p>先拿到一个能跑的版本。你确认方向对了，再继续让 AI 加筛选、编辑、统计等增强功能。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step-item reveal" data-step="5">
+          <h3>第 5 步：检查、修正、你亲手测试</h3>
+          <p>
+            这一步是很多新手最容易漏掉的。你不能只看"页面好像能打开"，而要让 AI 对照任务验收标准检查；然后你自己点一遍关键路径。
+          </p>
+          <div class="role-grid">
+            <div class="role-box">
+              <strong>复制给 Claude</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>请按 workflow 派发 trellis-check。
+检查当前改动是否符合 prd.md 和 spec。
+如果这是静态 HTML 项目，没有 pnpm lint / test 脚本，就按浏览器手测、控制台报错、关键按钮点击、刷新后数据是否保留来验证。
+发现能直接修的小问题先修掉。
+最后列出：完成项、未完成项、验证方式、剩余风险。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>复制给 Codex</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>$trellis-check
+请对照 prd.md 和 spec 检查当前改动。
+如果没有 pnpm lint / test 脚本，就按浏览器手测、控制台报错、关键按钮点击、刷新后数据是否保留来验证。
+发现能直接修的小问题先修掉。
+最后列出：完成项、未完成项、验证方式、剩余风险。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>这一步还不是收工</strong>
+              <p>检查通过后，你还要亲手测试。确认能新增、完成、删除、刷新后保留，再进入提交阶段。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step-item reveal" data-step="6">
+          <h3>第 6 步：先提交代码，再运行 finish-work</h3>
+          <p>
+            0.5.x 的关键变化是：<code>record-session</code> 不再是单独入口；收尾记录已经并入 <code>finish-work</code>。但 <code>finish-work</code> 不是帮你提交业务代码的按钮，业务代码提交发生在 Phase 3.4。
+          </p>
+          <div class="role-grid">
+            <div class="role-box">
+              <strong>提交前复制给 Claude</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>/trellis:continue
+我已经在浏览器里点过关键功能，确认没问题。
+请先运行 git status 和 git diff，列出建议提交的文件，并总结一条 feat: 风格的 commit message。
+先不要提交，等我确认。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>提交前复制给 Codex</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>$trellis-continue
+我已经在浏览器里点过关键功能，确认没问题。
+请先运行 git status 和 git diff，列出建议提交的文件，并总结一条 feat: 风格的 commit message。
+先不要提交，等我确认。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>Claude 确认后复制</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>我确认可以提交。
+请按刚才列出的文件和 commit message 执行 git add 与 git commit。
+提交成功后，再运行 /trellis:finish-work 归档当前任务，并把本轮完成内容、关键文件、遗留问题和建议下一步写回 journal。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>Codex 确认后复制</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>我确认可以提交。
+请按刚才列出的文件和 commit message 执行 git add 与 git commit。
+提交成功后，再运行 $trellis-finish-work 归档当前任务，并把本轮完成内容、关键文件、遗留问题和建议下一步写回 journal。</pre>
+              </div>
+            </div>
+          </div>
+          <div class="callout" style="margin-top: 16px;">
+            <strong>顺序必须这样：</strong>
+            <code>trellis-check</code> → 你人工测试 → Phase 3.4 工作提交 → <code>finish-work</code>。<code>finish-work</code> 会先跑 record-mode context 和 dirty check，再归档任务、写 journal；如果还有属于当前任务的未提交代码改动，它应该让你回到提交阶段。其它窗口的无关脏文件要明确留下，不混进本任务收尾。
+          </div>
+        </article>
+
+        <article class="step-item reveal" data-step="7">
+          <h3>第 7 步：下次回来怎么继续</h3>
+          <p>
+            第二天回来时，不要说"继续昨天那个 Todo 页面"，而要让 AI 重新读项目证据链。
+          </p>
+          <div class="role-grid">
+            <div class="role-box">
+              <strong>复制给 Claude</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>/trellis:continue
+继续这个 Todo List 项目。
+请用 get_context.py 确认当前任务和 active tasks，再读最新 journal。
+然后告诉我：
+1. 上次做到哪
+2. 当前完成度如何
+3. 下一步最合理的动作是什么
+先不要直接写代码。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>复制给 Codex</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>$trellis-continue
+继续这个 Todo List 项目。
+请用 get_context.py 确认当前任务和 active tasks，再读最新 journal。
+然后告诉我：
+1. 上次做到哪
+2. 当前完成度如何
+3. 下一步最合理的动作是什么
+先不要直接写代码。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>你应该期待 AI 回答什么</strong>
+              <p>它应该先总结当前进度，例如"新增/完成/删除已完成，localStorage 已接入，下一步建议做筛选或补样式"，而不是不看记录就直接开写。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="step-item reveal" data-step="8">
+          <h3>第 8 步：后续优化和 Bug 修复继续走同一个闭环</h3>
+          <p>
+            从 1 到 100 不是一次做完所有增强功能，而是一轮一轮重复小闭环：规划小目标 → 实现 → 检查 → 人工测试 → 提交 → finish-work。
+          </p>
+          <div class="role-grid">
+            <div class="role-box">
+              <strong>Claude 优化需求</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>/trellis:continue
+继续 Todo List 项目。
+我要做第二轮优化：加入任务筛选、剩余数量统计和任务编辑。
+请先拆成一个最小任务，写清验收标准，再按当前 workflow 推进。
+如果这三项会互相冲突，请建议我先做哪一项。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>Codex 优化需求</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>$trellis-continue
+继续 Todo List 项目。
+我要做第二轮优化：加入任务筛选、剩余数量统计和任务编辑。
+请先拆成一个最小任务，写清验收标准，再按当前 workflow 推进。
+如果这三项会互相冲突，请建议我先做哪一项。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>Claude Bug 修复</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>/trellis:continue
+刷新页面后，已完成任务偶尔会重复渲染。
+复现方式：新增两个任务，标记一个完成，刷新页面。
+预期：只显示两条任务。
+实际：出现重复任务。
+请先确认当前任务和 journal，再定位根因、修复并说明验证方式。
+如果反复修不对，请使用 trellis-break-loop 做复盘。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>Codex Bug 修复</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>$trellis-continue
+刷新页面后，已完成任务偶尔会重复渲染。
+复现方式：新增两个任务，标记一个完成，刷新页面。
+预期：只显示两条任务。
+实际：出现重复任务。
+请先确认当前任务和 journal，再定位根因、修复并说明验证方式。
+如果反复修不对，请加载 $trellis-break-loop 做复盘。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>Claude 长期规则</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>如果这轮形成了以后都会复用的规则，请加载 trellis-update-spec。
+把稳定下来的实现约定写进 .trellis/spec/。
+请写清楚：触发场景、推荐做法、错误写法、为什么容易出错、以后新增功能时要先检查什么。
+journal 记这次，spec 留以后。</pre>
+              </div>
+            </div>
+            <div class="role-box">
+              <strong>Codex 长期规则</strong>
+              <div class="copy-block">
+                <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+                <pre>$trellis-update-spec
+如果这轮形成了以后都会复用的规则，请把稳定下来的实现约定写进 .trellis/spec/。
+请写清楚：触发场景、推荐做法、错误写法、为什么容易出错、以后新增功能时要先检查什么。
+journal 记这次，spec 留以后。</pre>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="progress">
+    <div class="shell">
+      <div class="section-title reveal">
+        <div>
+          <div class="card-label warm">Progress</div>
+          <h2>如果中途中断了，怎么知道项目进程；用户又该怎么看项目进度</h2>
+          <p>
+            这两个问题要分开看。用户关注的是"现在做到哪了"；AI 关注的是"我该从哪接着做"。继续用上面的 Todo List 例子来理解最容易。
+          </p>
+        </div>
+        <div class="section-index">06</div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 18px;">
+        <article class="section-card reveal">
+          <span class="card-label">用户视角</span>
+          <h3>用户怎么看项目进度</h3>
+          <p>
+            用户通常不看 <code>AGENTS.md</code>，这很正常。对用户来说，最实用的是看"任务、日志、结果"三件事。
+          </p>
+          <ul class="bullet-list">
+            <li>看当前任务：用 <code>task.py current --source</code> 或 <code>get_context.py</code> 确认当前会话指向哪一轮。</li>
+            <li>看最新 journal：知道这一轮已经完成了什么、卡在哪、下一步准备做什么。</li>
+            <li>看实际页面和代码状态：确认功能是否真的已经落地。</li>
+          </ul>
+          <div class="callout" style="margin-top: 16px;">
+            <strong>最关键的一句：</strong>
+            如果没有在收尾时执行 <code>finish-work</code>，那归档和 journal 很可能不会被写回项目。用户下次再看时，就只会看到代码，不一定看得懂"当前项目进程"和"下一步建议"。
+          </div>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label olive">AI 视角</span>
+          <h3>AI 下次怎么续工</h3>
+          <p>
+            AI 续工时不是看"上次聊天记录"，而是重建项目证据链。无论 Claude 还是 Codex，都应该这么做：
+          </p>
+          <div class="callout" style="margin-top: 16px;">
+            先确认当前仓库身份：读取 <code>AGENTS.md</code>，用 <code>get_context.py</code> 或 <code>task.py list</code> 确认当前任务，再读取 <code>.trellis/workspace</code> 最新 journal。
+            如果仓库里还存在相关 spec、workflow 或交接文档，再补读它们。
+            最后只采用能被当前仓库文件印证的背景信息，并先告诉我当前完成度、未完成项和建议下一步。
+          </div>
+          <ul class="bullet-list">
+            <li>Claude 常见入口：<code>/trellis:continue</code></li>
+            <li>Codex 常见入口：<code>$trellis-continue</code>；无任务 bootstrap 时才用 <code>$trellis-start</code></li>
+            <li>如果最新 journal 没更新，AI 只能根据代码和旧任务猜测状态，可靠性会下降。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="section-card reveal" style="margin-top: 18px;">
+        <span class="card-label warm">必须强调</span>
+        <h3>想让下次能顺利继续，收工前一定要做 <code>finish-work</code></h3>
+        <p>
+          很多用户以为"AI 改完代码就结束了"，这是最容易出问题的地方。Trellis 0.5.x 把归档任务和记录 journal 合并进 <code>finish-work</code>；对代码型工作来说，前提是这轮代码已经被你测试过，并且工作提交已经完成。
+          执行时它会先用 <code>get_context.py --mode record</code> 看 active tasks、git status 和 recent commits，再用 <code>task.py archive</code> 归档任务，最后用 <code>add_session.py</code> 写 journal。
+        </p>
+        <div class="role-grid" style="margin-top: 16px;">
+          <div class="role-box">
+            <strong>Claude 收工时</strong>
+            <p><code>/trellis:finish-work</code><br>先确认：这轮已经人工测试并提交代码。然后归档当前任务，并把本轮完成内容、关键文件、遗留问题、建议下一步写回 journal。</p>
+          </div>
+          <div class="role-box">
+            <strong>Codex 收工时</strong>
+            <p><code>$trellis-finish-work</code><br>先确认：这轮已经人工测试并提交代码。然后归档当前任务，并把本轮完成内容、关键文件、遗留问题、建议下一步写回 journal。</p>
+          </div>
+          <div class="role-box">
+            <strong>如果没做会怎样</strong>
+            <p>没做 <code>finish-work</code>，下次续工时会缺少归档和 journal；但代码没先 commit 就去做最终归档，也容易让记录不可靠。默认提交顺序应该是：工作提交 → <code>chore(task): archive ...</code> → <code>chore: record journal</code>。</p>
+          </div>
+        </div>
+        <div class="terminal" style="margin-top: 18px;">
+          <div class="terminal-top">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span>recommended close-out order</span>
+          </div>
+          <div class="terminal-body"><pre><span class="prompt">1. trellis-check / 你自己在浏览器或终端测试关键功能</span>
+<span class="prompt">2. 让 AI 根据 git diff 给提交建议</span>
+<span class="prompt">3. 你确认后再 git add / git commit</span>
+<span class="prompt">4. /trellis:finish-work 或 $trellis-finish-work</span></pre></div>
+        </div>
+      </div>
+
+      <div class="section-card reveal" style="margin-top: 18px;">
+        <span class="card-label warm">Windows 快速检查</span>
+        <h3>如果你不打开 AI，也想自己看一眼状态</h3>
+        <p>
+          这组命令适合你在本机直接检查。根据你提供的手册，这台 Windows 环境手动跑 Trellis 脚本时优先用 <code>python</code>，不要默认写 <code>python3</code>。
+        </p>
+        <div class="terminal" style="margin-top: 18px;">
+          <div class="terminal-top">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span>quick status check</span>
+          </div>
+          <div class="terminal-body"><pre><span class="prompt">pwd</span>
+<span class="prompt">git status --short</span>
+<span class="prompt">python "./.trellis/scripts/task.py" list</span>
+<span class="prompt">python "./.trellis/scripts/get_context.py" --mode record</span></pre></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="prompts">
+    <div class="shell">
+      <div class="section-title reveal">
+        <div>
+          <div class="card-label">Prompt Kit</div>
+          <h2>直接可复制的提示词</h2>
+          <p>
+            真正好用的不是"神奇咒语"，而是把每一步的目的说清楚。下面这些模板，特别适合拿 Todo List 这种持续迭代项目来反复使用。
+          </p>
+        </div>
+        <div class="section-index">07</div>
+      </div>
+
+      <div class="prompt-grid">
+        <article class="section-card reveal">
+          <span class="card-label">开工模板</span>
+          <h3>开始一个新会话</h3>
+          <p>Claude 先用项目生成的 slash command；Codex 已有任务时用 continue，无任务或 hook 提示 bootstrap 时才用 start。两边都要先读事实链，再回答下一步。</p>
+          <div class="copy-block">
+            <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>/trellis:continue
+继续当前项目。请先读取项目入口和 Trellis 上下文：
+1. AGENTS.md
+2. python ./.trellis/scripts/get_context.py
+3. python ./.trellis/scripts/task.py list
+4. 最新 journal
+
+然后告诉我：当前仓库身份、当前任务目标、上次做到哪、建议我先做什么。
+先不要直接写代码。</pre>
+          </div>
+          <div class="copy-block">
+            <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>$trellis-start
+如果 get_context.py 已经显示 current task，请把第一行改成 $trellis-continue。
+继续当前项目。请先读取项目入口和 Trellis 上下文：
+1. AGENTS.md
+2. python ./.trellis/scripts/get_context.py
+3. python ./.trellis/scripts/task.py list
+4. 最新 journal
+
+然后告诉我：当前仓库身份、当前任务目标、上次做到哪、建议我先做什么。
+先不要直接写代码。</pre>
+          </div>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label olive">规划模板</span>
+          <h3>先拆需求再动代码</h3>
+          <p>适合把一句模糊需求变成 PRD、任务边界和验收标准。</p>
+          <div class="copy-block">
+            <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>先不要写代码。
+请加载 trellis-brainstorm，并根据当前仓库事实帮我把这个需求拆成最小可行方案、任务步骤、受影响文件和验收标准：
+
+【需求】
+在这里写你的需求。
+
+如果当前任务还是 00-bootstrap-guidelines，先说明它的作用并等我确认是否归档。
+信息不够时，先列需要确认的缺口，不要擅自扩大范围。</pre>
+          </div>
+          <div class="copy-block">
+            <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>$trellis-brainstorm
+如果当前没有 active task，请先用 $trellis-start 创建 planning 任务；如果已经有任务，请继续使用当前任务。
+先不要写代码。请根据当前仓库事实帮我把这个需求拆成最小可行方案、任务步骤、受影响文件和验收标准：
+
+【需求】
+在这里写你的需求。
+
+如果当前任务还是 00-bootstrap-guidelines，先说明它的作用并等我确认是否归档。
+信息不够时，先列需要确认的缺口，不要擅自扩大范围。</pre>
+          </div>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label warm">实现模板</span>
+          <h3>控制范围，优先拿到第一版</h3>
+          <p>适合 PRD 已经清楚、准备进入 <code>in_progress</code> 后使用。</p>
+          <div class="copy-block">
+            <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>按当前任务的 prd.md 实现第一版。
+请按 workflow 派发 trellis-implement，dispatch prompt 第一行必须是：
+Active task: &lt;task path&gt;
+
+只改必要文件，不加入 PRD 外的功能。
+开始前先说明准备改哪些文件；完成后说明改了哪些文件、如何验证。
+如果发现需求和仓库现状冲突，先停下来说明。</pre>
+          </div>
+          <div class="copy-block">
+            <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>$trellis-before-dev
+按当前任务的 prd.md 实现第一版。
+开始前先读取相关 .trellis/spec/，并说明准备创建或修改哪些文件。
+
+只改必要文件，不加入 PRD 外的功能。
+完成后说明改了哪些文件、如何验证。
+如果发现需求和仓库现状冲突，先停下来说明。</pre>
+          </div>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label olive">Bug 模板</span>
+          <h3>出现 Bug 时这样说最有效</h3>
+          <p>把现象、复现、预期、实际写清楚，AI 才不容易凭感觉修。</p>
+          <div class="copy-block">
+            <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>/trellis:continue
+这里有一个 Bug。请先确认当前任务并读取最新 journal，再按下面信息排查：
+
+【现象】在这里写看到的问题。
+【复现】1. 第一步 2. 第二步 3. 第三步
+【预期】在这里写应该发生什么。
+【实际】在这里写实际发生什么。
+
+修复后请告诉我根因、修改了哪些文件、怎么验证。
+如果反复修不对，请加载 trellis-break-loop 做复盘。</pre>
+          </div>
+          <div class="copy-block">
+            <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>$trellis-continue
+这里有一个 Bug。请先确认当前任务并读取最新 journal，再按下面信息排查：
+
+【现象】在这里写看到的问题。
+【复现】1. 第一步 2. 第二步 3. 第三步
+【预期】在这里写应该发生什么。
+【实际】在这里写实际发生什么。
+
+修复后请告诉我根因、修改了哪些文件、怎么验证。
+如果反复修不对，请加载 $trellis-break-loop 做复盘。</pre>
+          </div>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label">收工模板</span>
+          <h3>检查并留下续工线索</h3>
+          <p>注意顺序：先检查和人工测试，再提交代码，最后才 finish-work。</p>
+          <div class="copy-block">
+            <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>现在做完工检查。
+请按 workflow 派发 trellis-check，列出完成项、未完成项、风险和验证结果。
+如果这是代码型工作，请先根据 git status 和 git diff 给出提交建议，等我确认后再提交。
+
+我确认提交完成以后，再运行 /trellis:finish-work，把这次工作写入 journal 并归档当前任务。</pre>
+          </div>
+          <div class="copy-block">
+            <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>$trellis-check
+现在做完工检查。请列出完成项、未完成项、风险和验证结果。
+如果这是代码型工作，请先根据 git status 和 git diff 给出提交建议，等我确认后再提交。
+
+我确认提交完成以后，再运行 $trellis-finish-work，把这次工作写入 journal 并归档当前任务。</pre>
+          </div>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label warm">复盘模板</span>
+          <h3>这一轮结束后做总结</h3>
+          <p>复盘不是每天必做；适合难缠 Bug、反复返工、或者确实沉淀出长期规则的时候。</p>
+          <div class="copy-block">
+            <div class="copy-head"><span>Claude prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>请对这轮工作做复盘：
+1. 这次解决了什么
+2. 根因是什么
+3. 哪些做法有效
+4. 还有哪些风险没消掉
+
+如果这是 Bug 修复，请加载 trellis-break-loop 做根因复盘。
+如果形成了长期规则，请加载 trellis-update-spec，把稳定规则写进 .trellis/spec/。
+journal 记录这次，spec 只记录以后会反复复用的规则。</pre>
+          </div>
+          <div class="copy-block">
+            <div class="copy-head"><span>Codex prompt</span><button class="copy-btn" type="button">复制</button></div>
+            <pre>$trellis-break-loop
+请对这轮工作做复盘：
+1. 这次解决了什么
+2. 根因是什么
+3. 哪些做法有效
+4. 还有哪些风险没消掉
+
+如果形成了长期规则，请再加载 $trellis-update-spec，把稳定规则写进 .trellis/spec/。
+journal 记录这次，spec 只记录以后会反复复用的规则。</pre>
+          </div>
+        </article>
+      </div>
+
+      <div class="section-card reveal" style="margin-top: 18px;">
+        <span class="card-label olive">进阶玩法</span>
+        <h3>并行开发：0.5.x 里先别当成日常入口</h3>
+        <p>
+          旧教程里常把 <code>parallel</code> 当成进阶入口，但你这次 0.5.15 生成的 Claude 命令目录里没有 <code>parallel.md</code>，
+          Codex 也默认走 inline 模式。实际教学里更稳的是：先把需求拆成多个独立 Trellis 任务，一次只推进一个；确实需要并行时，再根据当前项目生成的脚本和平台能力单独设计。
+        </p>
+        <div class="role-grid">
+          <div class="role-box">
+            <strong>你可以这样说</strong>
+            <p>继续 Todo List 项目。我要做 3 件事：任务筛选、剩余数量统计、补基础测试。请先判断它们是否能拆成独立任务；如果会互相改同一批核心文件，请建议我先做哪一项。</p>
+          </div>
+          <div class="role-box">
+            <strong>Codex 侧现状</strong>
+            <p>Codex 默认 <code>dispatch_mode</code> 是 inline，普通任务由主会话直接读规范、改代码、检查。不要把旧版 <code>$parallel</code> 或 Claude 旧命令套进 Codex。</p>
+          </div>
+          <div class="role-box">
+            <strong>什么时候适合用</strong>
+            <p>适合多个小任务边界清楚、改动文件尽量少重叠的时候。 如果几件事都会改同一个核心文件，或者需求本身还没规划清楚，先走上面的第 2 步和第 7 步，把方案拆清楚，再决定要不要并行。</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top: 16px;">
+            <strong>先记住这个原则：</strong>
+          <p>并行最适合"可拆分、低冲突、范围窄"的任务，不适合把一个还没想清楚的大需求硬拆给多个 AI 同时乱改。</p>
+        </div>
+        <table class="tool-table" style="margin-top: 18px;">
+          <thead>
+            <tr>
+              <th>典型场景</th>
+              <th>适合并行开发</th>
+              <th>不适合并行开发</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Todo List 第二轮优化</td>
+              <td>任务筛选、剩余数量统计、补测试，三件事边界清楚，且可以尽量分开改不同文件。</td>
+              <td>筛选逻辑、列表渲染、数据结构重构都同时改同一个核心状态文件，冲突会很多。</td>
+            </tr>
+            <tr>
+              <td>前后端联动需求</td>
+              <td>一个 agent 做前端展示，一个 agent 做独立测试或文档补充，接口已经先定义清楚。</td>
+              <td>接口协议还没定、字段还在变，这时并行只会让前后端各写各的。</td>
+            </tr>
+            <tr>
+              <td>需求清晰度</td>
+              <td>已经过第 2 步或第 7 步规划，PRD 和验收标准都比较明确。</td>
+              <td>需求还是一句"继续优化一下体验"，连先做哪块都没定，不该直接 parallel。</td>
+            </tr>
+            <tr>
+              <td>文件冲突风险</td>
+              <td>每个 worktree 任务都能控制在一小块范围内，改动尽量少重叠。</td>
+              <td>多个 agent 都要一起改同一批核心文件、同一组状态管理逻辑或同一条主流程。</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="section-card" style="margin-top: 18px; box-shadow: none; background: rgba(255,255,255,0.52);">
+          <span class="card-label warm">并行之后怎么收束</span>
+          <h3>修了 Bug、发现规律后，下一步用什么命令</h3>
+          <p>
+            并行也好，单线程也好，做完事以后不要只停在"代码能跑了"。当前流程明确要求：
+            检查通过后先做工作提交，再用 <code>finish-work</code> 归档和记录 journal；如果这次形成了新规则、新模式，再用 <code>update-spec</code> 沉淀回项目。
+          </p>
+          <table class="tool-table" style="margin-top: 16px;">
+            <thead>
+              <tr>
+                <th>触发情况</th>
+                <th>Claude</th>
+                <th>Codex</th>
+                <th>作用</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>刚修完一个难缠 Bug，想搞清楚根因</td>
+                <td><code>trellis-break-loop</code></td>
+                <td><code>$trellis-break-loop</code></td>
+                <td>做深度复盘，避免"这次修好了，下次又踩一遍"。</td>
+              </tr>
+              <tr>
+                <td>这次修 Bug 过程中发现了长期规律或团队约定</td>
+                <td><code>trellis-update-spec</code></td>
+                <td><code>$trellis-update-spec</code></td>
+                <td>把经验沉淀进 spec，方便后续会话和其他 AI 继续复用。</td>
+              </tr>
+              <tr>
+                <td>一轮工作真的准备收工</td>
+                <td><code>/trellis:finish-work</code></td>
+                <td><code>$trellis-finish-work</code></td>
+                <td>归档当前任务，并把本轮结果、遗留问题和建议下一步写回 journal。</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="role-grid" style="margin-top: 16px;">
+            <div class="role-box">
+              <strong>Claude 记法</strong>
+              <p><code>修了 Bug？</code> ──是──▶ <code>trellis-break-loop</code>（复盘）<br><code>发现新规律？</code> ──是──▶ <code>trellis-update-spec</code>（沉淀）<br><code>准备结束这一轮？</code> ──是──▶ <code>/trellis:finish-work</code></p>
+            </div>
+            <div class="role-box">
+              <strong>Codex 记法</strong>
+              <p><code>修了 Bug？</code> ──是──▶ <code>$trellis-break-loop</code>（复盘）<br><code>发现新规律？</code> ──是──▶ <code>$trellis-update-spec</code>（沉淀）<br><code>准备结束这一轮？</code> ──是──▶ <code>$trellis-finish-work</code></p>
+            </div>
+            <div class="role-box">
+              <strong>怎么理解</strong>
+              <p><code>break-loop</code> 解决"为什么会出这个问题"，<code>update-spec</code> 解决"以后怎么别再犯"，<code>finish-work</code> 解决"任务归档和下次怎么接着干"。</p>
+            </div>
+          </div>
+        </div>
+        <ul class="bullet-list">
+          <li>你当前生成的 <code>.claude/commands/trellis/</code> 只有 <code>continue.md</code> 和 <code>finish-work.md</code>，不要照旧教程去找 <code>parallel.md</code>。</li>
+          <li>并行前先拆任务，确认文件冲突风险；如果边界不清，先单线程推进。</li>
+          <li>不管是否并行，最后都要按同一个收尾顺序：检查、人工测试、提交、<code>finish-work</code>。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="commands">
+    <div class="shell">
+      <div class="section-title reveal">
+        <div>
+          <div class="card-label warm">Command Index</div>
+          <h2>指令大全：一眼看懂该输什么</h2>
+          <p>
+            这部分专门给你快速查。分成 Claude Code、Codex、终端三类来看，避免把 slash commands、skills、系统命令混在一起。
+            另外旧源码、README、官方 latest 和实际生成文件之间可能存在口径差异，所以这里优先按你这次 0.5.15 项目里实际生成的命令来讲，再提醒用 0.5.16 CLI 做更新检查。
+          </p>
+        </div>
+        <div class="section-index">08</div>
+      </div>
+
+      <div class="callout reveal">
+        <strong>先记一条总规则：</strong>
+        Claude 用 <code>/...</code>，Codex 用 <code>$...</code>，终端里才输入 <code>trellis init</code>、<code>trellis update</code>、<code>claude</code>、<code>codex</code> 这些系统命令。
+      </div>
+
+      <div class="callout reveal" style="margin-top: 18px;">
+        <strong>按你的接入方式看：</strong>
+        如果你只装了 Claude，就只看下面的 Claude 表和终端里的 Claude 初始化命令；
+        如果你只装了 Codex，就只看 Codex 表和 Codex 初始化命令；
+        如果两个都装了，再同时保留两套入口。
+      </div>
+
+      <div class="grid-2" style="margin-top: 18px;">
+        <article class="section-card reveal">
+          <span class="card-label">Claude 启动</span>
+          <h3>Claude 侧通常不用额外开启 hook</h3>
+          <p>
+            Claude 生成的 <code>.claude/settings.json</code> 已经注册 <code>SessionStart</code>、
+            <code>PreToolUse</code> 和 <code>UserPromptSubmit</code> hooks。日常启动 <code>claude</code> 后，
+            需要显式续工时复制 <code>/trellis:continue</code>。
+          </p>
+        </article>
+        <article class="section-card reveal">
+          <span class="card-label warm">Codex 启动</span>
+          <h3>Codex hook 要先在用户级配置启用</h3>
+          <p>
+            项目里的 <code>.codex/hooks.json</code> 只定义 hook；Codex 还要求用户级配置打开 hooks、信任项目，
+            并在 <code>/hooks</code> TUI 里批准。否则也能手动用 <code>$trellis-start</code> / <code>$trellis-continue</code>，
+            但不会自动注入 workflow-state。
+          </p>
+          <div class="terminal" style="margin-top: 14px;">
+            <div class="terminal-top">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <span>~/.codex/config.toml</span>
+            </div>
+            <div class="terminal-body"><pre><span class="output">[features]
+hooks = true
+
+[projects."C:/Users/y2751/Desktop/trellis-tutorial更新指令"]
+trust_level = "trusted"</span></pre></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="grid-2" style="margin-top: 18px;">
+        <article class="section-card reveal">
+          <span class="card-label">Claude Code</span>
+          <h3>Slash Commands 快查</h3>
+          <table class="tool-table" style="margin-top: 16px;">
+            <thead>
+              <tr>
+                <th>用途</th>
+                <th>源码模板生成</th>
+                <th>补充说明</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>续工 / 进入当前任务</td>
+                <td><code>/trellis:continue</code></td>
+                <td>读取 Phase Index，判断该继续 planning、implement、check 还是 finish</td>
+              </tr>
+              <tr>
+                <td>收尾归档</td>
+                <td><code>/trellis:finish-work</code></td>
+                <td>代码已提交后执行；归档任务并写 journal</td>
+              </tr>
+              <tr>
+                <td>需求梳理</td>
+                <td><code>trellis-brainstorm</code></td>
+                <td>生成的是 skill，不是 slash command；通常由 workflow-state 指引 AI 加载</td>
+              </tr>
+              <tr>
+                <td>实现 / 检查</td>
+                <td><code>trellis-implement</code> / <code>trellis-check</code></td>
+                <td>Claude 主会话按 workflow 派发 sub-agent；上下文来自 <code>implement.jsonl</code> / <code>check.jsonl</code></td>
+              </tr>
+              <tr>
+                <td>更新规范</td>
+                <td><code>trellis-update-spec</code></td>
+                <td>把新规则沉淀到 spec</td>
+              </tr>
+              <tr>
+                <td>问题复盘</td>
+                <td><code>trellis-break-loop</code></td>
+                <td>反复修不对时使用</td>
+              </tr>
+            </tbody>
+          </table>
+          <ul class="bullet-list">
+            <li>你当前项目的 <code>.claude/commands/trellis/</code> 只有 <code>continue.md</code> 和 <code>finish-work.md</code>。</li>
+            <li>旧教程里常见的 <code>/trellis:start</code>、<code>/trellis:record-session</code>、<code>/trellis:parallel</code> 在这次生成结果里不是日常入口。</li>
+          </ul>
+        </article>
+
+        <article class="section-card reveal">
+          <span class="card-label warm">Codex</span>
+          <h3>Skills 快查</h3>
+          <table class="tool-table" style="margin-top: 16px;">
+            <thead>
+              <tr>
+                <th>用途</th>
+                <th>推荐先试</th>
+                <th>补充说明</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>无任务时初始化上下文</td>
+                <td><code>$trellis-start</code></td>
+                <td>只在本轮还没加载 Trellis 上下文、或 hook 提示无活动任务时使用</td>
+              </tr>
+              <tr>
+                <td>续工 / 进入当前任务</td>
+                <td><code>$trellis-continue</code></td>
+                <td>读取 Phase Index，判断该继续 planning、implement、check 还是 finish</td>
+              </tr>
+              <tr>
+                <td>需求梳理</td>
+                <td><code>$trellis-brainstorm</code></td>
+                <td>创建/迭代 <code>prd.md</code>，适合先拆任务再编码</td>
+              </tr>
+              <tr>
+                <td>编码前读规范</td>
+                <td><code>$trellis-before-dev</code></td>
+                <td>Codex inline 模式下，主会话正式改代码前必须先加载</td>
+              </tr>
+              <tr>
+                <td>规则与质量检查</td>
+                <td><code>$trellis-check</code></td>
+                <td>代码写完后对照 spec、PRD、lint/test 和跨层一致性检查</td>
+              </tr>
+              <tr>
+                <td>收尾归档</td>
+                <td><code>$trellis-finish-work</code></td>
+                <td>工作代码已提交后执行；归档任务并写 journal</td>
+              </tr>
+              <tr>
+                <td>更新规范</td>
+                <td><code>$trellis-update-spec</code></td>
+                <td>把值得复用的经验沉淀到 <code>.trellis/spec/</code></td>
+              </tr>
+              <tr>
+                <td>问题复盘</td>
+                <td><code>$trellis-break-loop</code></td>
+                <td>反复修不对时使用</td>
+              </tr>
+              <tr>
+                <td>并行开发</td>
+                <td><code>暂无</code></td>
+                <td>当前 Codex 模板没有对应并行 skill；不要把 Claude 的 <code>/trellis:parallel</code> 套成 Codex 命令</td>
+              </tr>
+            </tbody>
+          </table>
+          <ul class="bullet-list">
+            <li>你当前项目实际生成的共享 skills 是：<code>trellis-start</code>、<code>trellis-continue</code>、<code>trellis-finish-work</code>、<code>trellis-brainstorm</code>、<code>trellis-before-dev</code>、<code>trellis-check</code>、<code>trellis-update-spec</code>、<code>trellis-break-loop</code>、<code>trellis-meta</code>。</li>
+            <li>Codex 不执行 Claude 的 <code>/...</code>，显式触发时用 <code>$trellis-...</code>，也可以直接说自然语言。</li>
+            <li>Codex 当前靠 <code>.codex/hooks.json</code> 的 <code>UserPromptSubmit</code> 注入 workflow-state；如果 hook 没启用，先显式运行 <code>$trellis-start</code> 或 <code>$trellis-continue</code>。</li>
+            <li>优先去看 <code>.agents/skills/</code> 实际生成了哪些 skill。</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="section-card reveal" style="margin-top: 18px;">
+        <span class="card-label olive">Terminal</span>
+        <h3>终端命令快查</h3>
+        <table class="tool-table" style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th>命令</th>
+              <th>什么时候用</th>
+              <th>注意点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>trellis init -u 你的名字 --claude --skip-existing</code></td>
+              <td>项目第一次只接入 Claude</td>
+              <td>会生成 <code>.claude/</code>，不是日常启动命令</td>
+            </tr>
+            <tr>
+              <td><code>trellis init -u 你的名字 --codex --skip-existing</code></td>
+              <td>项目第一次只接入 Codex</td>
+              <td>会生成 <code>.codex/</code> 和 <code>.agents/skills/</code>，不是日常启动命令</td>
+            </tr>
+            <tr>
+              <td><code>trellis init -u 你的名字 --claude --codex --skip-existing</code></td>
+              <td>项目第一次同时接入 Claude 和 Codex</td>
+              <td>两套入口都会生成，之后日常按当天使用的工具启动</td>
+            </tr>
+            <tr>
+              <td><code>trellis update --dry-run</code></td>
+              <td>预览升级会改哪些 Trellis 模板</td>
+              <td>这次 0.5.15 → 0.5.16 预览显示主要会自动更新 <code>.claude/hooks/session-start.py</code>，用户数据会保留</td>
+            </tr>
+            <tr>
+              <td><code>trellis update</code></td>
+              <td>升级项目里的 Trellis 模板文件</td>
+              <td>建议先跑 <code>--dry-run</code>，再决定是否正式更新</td>
+            </tr>
+            <tr>
+              <td><code>claude</code></td>
+              <td>启动 Claude Code</td>
+              <td>日常开工命令</td>
+            </tr>
+            <tr>
+              <td><code>codex</code></td>
+              <td>启动 Codex</td>
+              <td>日常开工命令</td>
+            </tr>
+            <tr>
+              <td><code>git status --short</code></td>
+              <td>快速看工作区是否有未提交改动</td>
+              <td>最适合中断后先看一眼</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/task.py" create "任务标题" --slug todo-mvp</code></td>
+              <td>创建新任务，进入 Phase 1 planning</td>
+              <td>脚本会自动加 <code>MM-DD-</code> 日期前缀；有 session identity 时会把新任务设为当前会话任务</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/task.py" start &lt;task-dir&gt;</code></td>
+              <td>PRD 和上下文准备好后进入 Phase 2</td>
+              <td>把 <code>planning</code> 改成 <code>in_progress</code>；无 session identity 时会 degraded，只是不持久化本会话指针</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/task.py" current --source</code></td>
+              <td>确认当前会话指向哪个任务</td>
+              <td>会显示来源，例如 session 级指针；比手动猜目录可靠</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/task.py" list</code></td>
+              <td>看任务列表和状态</td>
+              <td>适合找 active / archived / planning / in_progress 任务</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/task.py" finish</code></td>
+              <td>排错时清除当前任务指针</td>
+              <td>不属于正常完工流程；只清当前会话指针，不等于完成或归档任务</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/task.py" archive "00-bootstrap-guidelines"</code></td>
+              <td>归档首次初始化任务</td>
+              <td>会把任务标记为 completed、移动到 archive，并清掉指向它的运行时会话指针；默认还会尝试提交 <code>chore(task): archive ...</code></td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/task.py" add-context &lt;task-dir&gt; implement ".trellis/spec/frontend/index.md" "前端规范"</code></td>
+              <td>给 <code>implement.jsonl</code> 或 <code>check.jsonl</code> 添加 spec / research 条目</td>
+              <td>只登记 spec 和 research，不登记即将修改的代码文件；<code>implement</code> / <code>check</code> 是简写</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/task.py" list-context &lt;task-dir&gt;</code></td>
+              <td>查看 JSONL 上下文是否已经真正 curated</td>
+              <td>只有 <code>_example</code> 种子行不算完成 Phase 1.3</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/task.py" validate &lt;task-dir&gt;</code></td>
+              <td>检查 JSONL 里的文件路径是否存在</td>
+              <td>会跳过没有 <code>file</code> 字段的种子行</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/get_context.py" --mode phase</code></td>
+              <td>查看当前 Plan / Execute / Finish 阶段索引</td>
+              <td><code>$trellis-continue</code> 和 <code>/trellis:continue</code> 本质上都围绕这套阶段判断续工</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/get_context.py" --mode phase --step 2.1 --platform codex</code></td>
+              <td>读取某个 workflow step 的详细操作说明</td>
+              <td><code>--platform</code> 会过滤 Claude / Codex / inline 等平台分支</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/get_context.py" --mode packages</code></td>
+              <td>列出项目包和 spec layers</td>
+              <td>用于决定编码前该读哪些 <code>.trellis/spec/</code> index</td>
+            </tr>
+            <tr>
+              <td><code>python "./.trellis/scripts/get_context.py" --mode record</code></td>
+              <td><code>finish-work</code> 收尾前的状态快照</td>
+              <td>突出显示我的 active tasks、git status、recent commits 和 current task</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-card reveal" style="margin-top: 18px;">
+        <span class="card-label">一句话版</span>
+        <h3>最短记忆法</h3>
+        <div class="dialogue">
+          <div class="bubble">
+            <strong>Claude</strong>
+            <p><code>claude</code> → hook 注入上下文 → 显式续工用 <code>/trellis:continue</code> → 需求/实现/检查按 workflow 推进 → 你测试并确认提交 → <code>/trellis:finish-work</code></p>
+          </div>
+          <div class="bubble ai">
+            <strong>Codex</strong>
+            <p><code>codex</code> → 无任务时 <code>$trellis-start</code>，已有任务用 <code>$trellis-continue</code> → <code>$trellis-before-dev</code> → 开发 → <code>$trellis-check</code> → 你测试并确认提交 → <code>$trellis-finish-work</code></p>
+          </div>
+          <div class="bubble meta">
+            <strong>终端</strong>
+            <p>第一次接入才用 <code>trellis init</code>；平时只是 <code>claude</code> 或 <code>codex</code>。正式写代码前必须读相关 spec；<code>finish-work</code> 放在工作代码提交之后。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="shell">
+      <div class="section-title reveal">
+        <div>
+          <div class="card-label olive">FAQ</div>
+          <h2>几个最容易问到的问题</h2>
+          <p>
+            这里专门补你这次提到的几个核心疑问，并且按"用户快速看懂"为目标写得更直接。
+          </p>
+        </div>
+        <div class="section-index">09</div>
+      </div>
+
+      <div class="faq-grid">
+        <details class="faq-item reveal" open>
+          <summary><span>Q1. 必须在同一个项目里同时装 Claude 和 Codex 吗？</span></summary>
+          <div class="faq-body">
+            不需要。按这次生成结果，<code>trellis init --claude</code> 只会生成 Claude 入口，<code>trellis init --codex</code> 会生成 <code>.codex/</code> 和共享 <code>.agents/skills/</code>。
+            你完全可以只用一个，也可以两个都接。
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>Q2. Trellis 是不是每天都要重新初始化一次？</span></summary>
+          <div class="faq-body">
+            不是。<code>trellis init</code> 是首次接入命令。项目已经接入后，日常只是进入项目目录，然后启动 <code>claude</code> 或 <code>codex</code>。
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>Q3. Claude 和 Codex 会自动共享所有记忆吗？</span></summary>
+          <div class="faq-body">
+            不会。真正共享的是项目里的事实层，例如 <code>AGENTS.md</code> 和 <code>.trellis/</code>。
+            但平台专属入口并不一样：Claude 默认主要看 <code>.claude/</code>，Codex 默认主要看 <code>AGENTS.md</code> 和 <code>.agents/skills/</code>。
+            模型私有 memory 不能直接当项目事实。
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>Q4. 我中间清空了对话，还能接着做吗？</span></summary>
+          <div class="faq-body">
+            可以。正确做法不是"让 AI 回忆昨天"，而是让它重建证据链：先读 <code>AGENTS.md</code>，再用 <code>get_context.py</code> 或 <code>task.py list</code> 确认当前任务，再看最新 journal。只要准备写代码，就必须补读相关 spec 和 workflow。
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>Q5. Claude 也要读 AGENTS.md 吗？</span></summary>
+          <div class="faq-body">
+            要分两层理解。Claude 的平台专属默认入口是 <code>.claude/</code> 里的 slash commands 和 hooks；
+            但如果仓库里有 <code>AGENTS.md</code>，而且里面写了项目级指令或统一入口规则，Claude 也应该读，也应该遵守。
+            不要把它理解成"Claude 不读 AGENTS"，更准确的说法是"Claude 的平台入口不只靠 AGENTS，Codex 则更依赖 AGENTS 作为项目说明入口之一"。
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>Q6. Codex 一定要记住很多技能名吗？</span></summary>
+          <div class="faq-body">
+            不一定。项目已经接好 Trellis 时，很多场景下直接说自然语言就够了。
+            但如果你要显式触发流程，Codex 要用 <code>$trellis-start</code>、<code>$trellis-continue</code>、<code>$trellis-check</code>、<code>$trellis-finish-work</code> 这类带前缀的 skills，
+            不是 Claude 那种 <code>/trellis:continue</code>、<code>/trellis:finish-work</code> slash commands。
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>Q7. 为什么我下次进来时，AI 说不清当前项目进度？</span></summary>
+          <div class="faq-body">
+            常见原因是上一轮没有按 Phase 3 收尾：代码没提交、任务没归档、journal 没更新，或者当前会话指针没有正确指向任务。
+            0.5.x 里 session 记录已经并入 <code>finish-work</code>，所以收尾时要在工作提交之后运行 <code>/trellis:finish-work</code> 或 <code>$trellis-finish-work</code>。
+          </div>
+        </details>
+
+        <details class="faq-item reveal">
+          <summary><span>Q8. 为什么初始化后总有一个 <code>00-bootstrap-guidelines</code> 任务？</span></summary>
+          <div class="faq-body">
+            这是 Trellis 首次初始化时自动创建的规范补齐任务，不是异常。它会提醒你先根据真实代码填写 <code>.trellis/spec/</code>，并通过 session 级运行时指针成为当前任务。
+            处理方式是：补好最小规范后执行 <code>task.py archive "00-bootstrap-guidelines"</code>；如果只是空项目演示，也可以明确暂时跳过并归档，再创建真正的业务任务。<code>task.py finish</code> 只清当前会话指针，不负责完成归档。
+          </div>
+        </details>
+      </div>
+
+      <div class="callout reveal" style="margin-top: 18px;">
+        <strong>版本差异提醒：</strong>
+        当前教程按这次实际生成的 Trellis <code>0.5.15</code> 项目整理；本机 CLI 与 npm latest 已到 <code>0.5.16</code>。
+        如果你的项目是旧版本初始化出来的，先运行 <code>trellis update --dry-run</code> 看影响，再决定是否运行 <code>trellis update</code>。日常操作仍以实际生成的 <code>.claude/commands/trellis/</code>、<code>.codex/</code>、<code>.agents/skills/</code>、hooks 和脚本为准。
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="shell">
+    本页基于本机 Trellis CLI <code>0.5.16</code>、本项目实际生成的 <code>.trellis/.version 0.5.15</code>、<code>.claude/</code>、<code>.codex/</code>、<code>.agents/skills/</code> 重写；
+    本目录 <code>Trellis/package.json v0.3.5</code> 是旧源码快照，只作历史参考。
+    建议把它当作"快速上手入口"，项目实际操作时仍以仓库内已生成的 <code>AGENTS.md</code> 和 Trellis 运行时文件为准。
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll(".reveal").forEach((node) => observer.observe(node));
+
+  const normalizePromptText = (text) =>
+    text
+      .replace(/\s*\n+\s*/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+  const copyText = async (text) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const fallback = document.createElement("textarea");
+    fallback.value = text;
+    fallback.setAttribute("readonly", "");
+    fallback.style.position = "fixed";
+    fallback.style.top = "-9999px";
+    fallback.style.left = "-9999px";
+    fallback.style.opacity = "0";
+    document.body.appendChild(fallback);
+    fallback.focus();
+    fallback.select();
+
+    const copied = document.execCommand("copy");
+    document.body.removeChild(fallback);
+
+    if (!copied) {
+      throw new Error("copy failed");
+    }
+  };
+
+  document.querySelectorAll(".copy-block").forEach((block) => {
+    const button = block.querySelector(".copy-btn");
+    const code = block.querySelector("pre");
+    if (!button || !code) return;
+    const head = block.querySelector(".copy-head span");
+    const isPrompt = Boolean(head && head.textContent && head.textContent.toLowerCase().includes("prompt"));
+
+    if (isPrompt) {
+      block.classList.add("prompt-copy");
+    }
+
+    button.addEventListener("click", async () => {
+      const rawText = code.textContent || "";
+      const text = isPrompt ? normalizePromptText(rawText) : rawText.trim();
+      try {
+        await copyText(text);
+        const oldText = button.textContent;
+        button.textContent = "已复制";
+        window.setTimeout(() => {
+          button.textContent = oldText;
+        }, 1400);
+      } catch {
+        button.textContent = "手动复制";
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
