@@ -38,3 +38,36 @@ Added a root README that directs students to 教案.html, explains that source f
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: Show README Hook screenshots
+
+**Date**: 2026-05-21
+**Task**: Show README Hook screenshots
+**Branch**: `master`
+
+### Summary
+
+Updated the root README to tell students to download the lesson HTML before reading and to render the three Hook trust screenshots inline.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7b7f8f8` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
